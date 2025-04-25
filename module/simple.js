@@ -27,10 +27,17 @@ Handlebars.registerHelper('ifnoteq', function (a, b, options) {
   return options.inverse(this);
 });
 
-Handlebars.registerHelper('enrichHTML', (html) => {
-  return TextEditor.enrichHTML(html, {async: false});
+Handlebars.registerHelper('enrichHTML', async (html) => {
+  return TextEditor.enrichHTML(html, { async: false });
 });
 
+// Handle v12 removal of this helper
+Handlebars.registerHelper('select', function (selected, options) {
+  const escapedValue = RegExp.escape(Handlebars.escapeExpression(selected));
+  const rgx = new RegExp(' value=[\"\']' + escapedValue + '[\"\']');
+  const html = options.fn(this);
+  return html.replace(rgx, "$& selected");
+});
 
 Hooks.once("init", async function () {
   console.log(`WOIN | simple.js Hooks.once Initialized`);
@@ -98,7 +105,7 @@ Hooks.once("init", async function () {
   root.style.setProperty('--cyan', game.settings.get("woinfoundry", "PrimaryColour"));
   root.style.setProperty('--invertcyan', game.settings.get("woinfoundry", "InvertedPrimaryColour"));
 
-  Hooks.on("closeSettingsConfig", ()=>{
+  Hooks.on("closeSettingsConfig", () => {
     root.style.setProperty('--cyan', game.settings.get("woinfoundry", "PrimaryColour"));
     root.style.setProperty('--invertcyan', game.settings.get("woinfoundry", "InvertedPrimaryColour"));
   });
