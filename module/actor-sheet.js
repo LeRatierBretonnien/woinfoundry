@@ -188,12 +188,9 @@ export class SimpleActorSheet extends ActorSheet {
       const dataset = ev.currentTarget.dataset;
       const item = this.actor.items.get(dataset.itemId);
 
-      let newItem = foundry.utils.duplicate(item);
-      //console.log("WOIN | actor-sheet.js activateListeners dataset ", dataset);
-      newItem.system.equipped = !newItem.system.equipped;
-      const data = newItem.system;
-      item.update({ data });
-      //console.log("WOIN | actor-sheet.js activateListeners newItem ", newItem);
+      setTimeout(() => {
+        this.actor.updateEmbeddedDocuments("Item", [{ _id: item.id, "system.equipped": !item.system.equipped }]);
+      }, 100);
     });
 
     // Flipping Item Carried State:
@@ -203,11 +200,9 @@ export class SimpleActorSheet extends ActorSheet {
       const dataset = ev.currentTarget.dataset;
       const item = this.actor.items.get(dataset.itemId);
 
-      let newItem = foundry.utils.duplicate(item);
-      newItem.system.carried = !newItem.system.carried;
-      newItem.system.equipped = false;
-      const data = newItem.system;
-      item.update({ data });
+      setTimeout(() => {
+        this.actor.updateEmbeddedDocuments("Item", [{ _id: item.id, "system.carried": !item.system.carried, "equipped": false }]);
+      }, 100);
     });
 
     // Adding new Exploits:
