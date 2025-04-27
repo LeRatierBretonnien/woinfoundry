@@ -4,6 +4,7 @@
  */
 
 import { DiceWOIN } from "./dice.js"
+const poolSkill = [0, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8]
 
 export class SimpleActorSheet extends ActorSheet {
 
@@ -43,10 +44,32 @@ export class SimpleActorSheet extends ActorSheet {
   // ================================================================================
 
   async prepareItems(items) {
-    for (let i of items) {
-      if (i.system.description) {
-        i.system.descriptionHTML = await TextEditor.enrichHTML(i.system.description);
+    let itemUpdates = [];
+    for (let item of items) {
+      if (item.system.description) {
+        item.system.descriptionHTML = await TextEditor.enrichHTML(item.system.description);
       }
+      if (item.type === "skill") {
+        let gradePool = this.actor.system.attributes[item.system.attribute].dice;
+        if (item.system.score < 0) {
+          item.system.score = 0;
+        }
+        let poolIndex = item.system.score;
+        if (item.system.score > poolSkill.length) {
+          poolIndex = poolSkill.length - 1;
+        }
+        let poolValue = poolSkill[poolIndex];
+        if (gradePool != item.system.gradepool || poolValue != item.system.pool) {
+          itemUpdates.push({ _id: item.id, "system.pool": poolValue, "system.gradepool": gradePool });
+        }
+      }
+    }
+    if (itemUpdates.length > 0) {
+      console.log("WOIN | actor-sheet.js prepareItems itemUpdates ", itemUpdates);
+      setTimeout(() => {
+        this.actor.updateEmbeddedDocuments("Item", itemUpdates);
+        this.render(true);
+      }, 100);
     }
   }
 
@@ -137,7 +160,7 @@ export class SimpleActorSheet extends ActorSheet {
     });
 
     // Handling Updates to Attributes:
-    html.find(".attribute input").change(ev => { this.updateAttributes(ev); });
+    // html.find(".attribute input").change(ev => { this.updateAttributes(ev); });
 
     // Handling Updates to Skills:
     html.find(".skills-value").change(ev => { this.updateSkill(ev); });
@@ -154,7 +177,7 @@ export class SimpleActorSheet extends ActorSheet {
     // Adding new Items:
     html.find(".item-add").click(ev => {
 
-      const item = { name: "new item", type: "item", data: game.system.model.Item.item };
+      const item = { name: "new item", type: "item", system: foundry.utils.duplicate(game.model.Item.item) };
       this.actor.createEmbeddedDocuments("Item", [item], { renderSheet: false });
     });
 
@@ -189,7 +212,7 @@ export class SimpleActorSheet extends ActorSheet {
 
     // Adding new Exploits:
     html.find(".exploit-add").click(ev => {
-      const item = { name: "new item", type: "exploit", data: game.system.model.Item.exploit };
+      const item = { name: "new item", type: "exploit", system: foundry.utils.duplicate(game.model.Item.exploit) };
       this.actor.createEmbeddedDocuments("Item", [item], { renderSheet: false });
     });
 
@@ -242,9 +265,11 @@ export class SimpleActorSheet extends ActorSheet {
       const input = (ev.currentTarget.value);
 
       let newItem = foundry.utils.duplicate(item);
-      newItem.system.skill = input;
-      const data = newItem.system;
-      item.update({ data });
+      if ( newItem.system.skill != input) {
+        setTimeout(() => {
+          this.actor.updateEmbeddedDocuments("Item", [{ _id: item.id, "system.skill": input }]);
+        }, 100);
+      }
     });
 
     //Handling Item Drag&Drop
@@ -607,55 +632,58 @@ export class SimpleActorSheet extends ActorSheet {
     event.preventDefault();
 
     const target = event.currentTarget.dataset.attribute;
-    //console.log("WOIN | actor-sheet.js updateAttributes Updating attributes for ", this.actor.id, " | modified attribute is", target);
     const input = ($(event.currentTarget)[0].value);
 
     // The pool table maps the number of dice in the attribute's dice pool based on the attribute's value.
     const pool = [0, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8]
-    const actor = foundry.utils.duplicate(this.actor);
-    console.log("WOIN | actor-sheet.js updateAttributes actor ", actor);
 
-    let data = actor.system;
+    let data = foundry.utils.duplicate(this.actor.system);
+    let updates = {}
     console.log("WOIN | actor-sheet.js updateAttributes data ", data);
 
     // Calculating Attribute Dice Pools:
-    for (var key in data.attributes) {
+    for (let key in data.attributes) {
       if (key === target && !isNaN(input)) {
-        data.attributes[key].value = parseInt(input);
+        updates[`system.attributes.${key}.value`] = parseInt(input);
+        //data.attributes[key].value = parseInt(input);
       }
-      //console.log("WOIN | actor-sheet.js updateAttributes  data.attributes[key].value ", data.attributes[key].value);
-      if (pool[data.attributes[key].value] != null) {
-        data.attributes[key].dice = pool[data.attributes[key].value];
+      let attr = data.attributes[key];
+
+      if (pool[attr.value] != null) {
+        updates[`system.attributes.${key}.dice`] = pool[attr.value];
+        //data.attributes[key].dice = pool[data.attributes[key].value];
       } else {
-        data.attributes[key].dice = 0;
+        updates[`system.attributes.${key}.dice`] = 0;
+        //data.attributes[key].dice = 0;
       }
     };
 
     // Calculating Luck:
     data.luck.max = data.attributes.luck.dice;
     if (data.luck.value > data.luck.max) {
-      data.luck.value = data.luck.max;
+      updates[`system.luck.value`] = data.luck.max;
+      //data.luck.value = data.luck.max;
     }
     if ((data.luck.value < 0) || (!data.luck.value)) {
-      data.luck.value = 0;
+      updates[`system.luck.value`] = 0;
+      //data.luck.value = 0;
     }
     if (data.power.value > data.power.max) {
-      data.power.value = data.power.max;
+      updates[`system.power.value`] = data.power.max;
+      //data.power.value = data.power.max;
     }
     if ((data.power.value < 0) || (!data.power.value)) {
-      data.power.value = 0;
+      updates[`system.power.value`] = 0;
+      //data.power.value = 0;
     }
 
-    this.actor.update({ data });
+    await this.actor.update({ updates });
+    console.log("WOIN | actor-sheet.js updateAttributes updates ", this.actor.id, updates);
   }
 
   // ================================================================================
-
-
-
   // ---------------------------------------------------------------------------------
   // The following Is used to keep data values for skills and advancement up to date:
-
   async updateSkill(ev) {
     ev.preventDefault();
 
@@ -701,6 +729,7 @@ export class SimpleActorSheet extends ActorSheet {
       data.gradepool = actorData.attributes[`${data.attribute}`]["dice"];
     }
 
+    console.log("WOIN | actor-sheet.js updateSkill data ", data);
     item.update({ data });
   }
 
