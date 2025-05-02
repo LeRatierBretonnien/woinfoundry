@@ -179,12 +179,12 @@
             <a class="rollable-attack" data-itemId="{{item._id}}" data-actorId="{{../actor.actor.id}}"
               data-description="{{item.name}}" style="display:inline-block">⚄</a>
           </span>
-          <a data-description="{{item.system.weapon.damagetype}}" data-skill-dice="{{item.system.weapon.damagedice}}"
+          <a data-description="{{item.system.weapon.damagetypetext}}" data-skill-dice="{{item.system.weapon.damagedice}}"
             data-attribute-dice="0" data-actorId="{{../actor.actor.id}}"
             data-constant1="{{item.system.weapon.bonusdamage}}" data-constant2="{{item.system.weapon.skilldamage}}"
             class="rollable-general combat-dicepool">{{item.system.weapon.bonusdamage}}+{{item.system.weapon.damagedice}}d6+{{item.system.weapon.skilldamage}}
             ⚄</a>
-          <span class="combat-damagetype">{{#each item.system.weapon.damagetype}}{{this}} {{/each}}</span>
+          <span class="combat-damagetype">{{item.system.weapon.damagetypetext}}</span>
           <span class="combat-special">{{item.system.weapon.special}}</span>
 
         </div>

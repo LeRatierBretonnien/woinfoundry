@@ -28,7 +28,7 @@ export class DiceWOIN {
         let rollMode = game.settings.get("core", "rollMode");
         let speaker = ChatMessage.getSpeaker();
         let flavor = description || title;
-        
+
         let dialogData = {
             base: dice,
             constant: constant,
@@ -108,7 +108,7 @@ export class DiceWOIN {
             const add  = html.find('[name="bonus"')[0].value;
             const constant = html.find('[name="constant"')[0].value;
             const luck = html.find('[name="luck"')[0].value || 0;
-            
+
             // NOTE 10" for ranged, 5" for melee
             const highground = html.find('[name="high-ground"')[0].checked === true ? 1 : 0;
 
@@ -161,7 +161,7 @@ export class DiceWOIN {
         let rollMode = game.settings.get("core", "rollMode");
         let speaker = ChatMessage.getSpeaker();
         let flavor = description || "";
-        
+
         let dialogData = {
             base: capped,
             maxLuck: actor.system.luck.value,
@@ -202,7 +202,6 @@ export class DiceWOIN {
         speaker = speaker || ChatMessage.getSpeaker();
         rollMode = rollMode || game.settings.get("core", "rollMode");
         let rolled = false;
-        // console.log("WOIN | dice.js roll ??", parseInt(parts[0].split("+").replace("d6","")));
 
         function _roll(parts, html, privacy) {
             let modifier = " + " + html.find('[name="bonus"')[0].value + "d6";

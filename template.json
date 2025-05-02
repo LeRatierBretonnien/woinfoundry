@@ -236,6 +236,7 @@
         "bonusdamage": 0,
         "skilldamage": 0,
         "tradeoff": 0,
+        "damagetypetext": "",
         "damagetype": ["slashing"],
         "special": "",
         "attack": 0,
@@ -321,4 +322,4 @@
       "name":"standard"
     }
   }
-} 
+}

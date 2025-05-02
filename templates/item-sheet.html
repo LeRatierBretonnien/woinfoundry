@@ -106,15 +106,19 @@
                 <label>bonus attack:</label>
                 <input type="text" name="system.weapon.bonus_attack" value="{{item.system.weapon.bonus_attack}}" data-dtype="Number"/>
             </div>
+            <div class="resource inline">
+                <label>damage type:</label>
+                <input type="text" name="system.weapon.damagetypetext" value="{{item.system.weapon.damagetypetext}}" data-dtype="String"/>
+            </div>
             {{#each system.weapon.damagetype}}
             <div class="resource">
                 <label>damage type:</label>
-                <input class="damage-array" type="text" data-dindex="{{@key}}" value="{{this}}" data-dtype="text" />
+                <input class="damage-array" type="text" data-dindex="{{@key}}" value="{{this}}" data-dtype="String" />
             </div>
             {{/each}}
             <div class="resource">
                 <label>special:</label>
-                <input type="text" name="system.weapon.special" value="{{item.system.weapon.special}}" data-dtype="text" />
+                <input type="text" name="system.weapon.special" value="{{item.system.weapon.special}}" data-dtype="String" />
             </div>
             {{/ifeq}}
             {{#ifeq item.system.type "armor"}}
@@ -137,7 +141,7 @@
             </div>
             {{/each}}
             {{/ifeq}}
-            
+
         </div>
     </section>
 </form>
