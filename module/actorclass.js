@@ -35,6 +35,10 @@ export class WOINActor extends Actor {
     };
 
     // Calculating Luck:
+    if ( data.attributes.luck.dice != data.luck.max) {
+      updates[`system.luck.max`] = data.attributes.luck.dice;
+      toUpdate = true;
+    }
     data.luck.max = data.attributes.luck.dice;
     if (data.luck.value > data.luck.max) {
       updates[`system.luck.value`] = data.luck.max;

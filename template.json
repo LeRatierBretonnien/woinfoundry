@@ -151,6 +151,20 @@
           "label": "psi",
           "dice": 0,
           "modifier": []
+        },
+        "magic": {
+          "value": 0,
+          "name": "magic",
+          "label": "mag",
+          "dice": 0,
+          "modifier": []
+        },
+        "chi": {
+          "value": 0,
+          "name": "chi",
+          "label": "chi",
+          "dice": 0,
+          "modifier": []
         }
       }
     },
