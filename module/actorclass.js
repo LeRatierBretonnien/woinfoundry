@@ -12,6 +12,10 @@ export class WOINActor extends Actor {
   _onUpdate(changed, options, userId) {
     super._onUpdate(changed, options, userId);
 
+    if (userId !== game.userId) {
+      return
+    }
+
     let data = foundry.utils.duplicate(this.system);
     let updates = {}
     console.log("WOIN | actor-sheet.js updateAttributes data ", data);
