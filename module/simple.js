@@ -8,7 +8,9 @@
 import { SimpleItemSheet } from "./item-sheet.js";
 import { SimpleActorSheet } from "./actor-sheet.js";
 import { SimpleExploitSheet } from "./exploit-sheet.js"
+import { SimpleShipItemSheet } from "./ship-item-sheet.js"
 import { WOINActor } from "./actorclass.js";
+import * as models from "./models/_module.js";
 import "./config.js";
 import { overrides } from "./overrides.js"
 overrides();
@@ -27,14 +29,17 @@ Handlebars.registerHelper('ifnoteq', function (a, b, options) {
   return options.inverse(this);
 });
 
-Handlebars.registerHelper('enrichHTML', async (html) => {
-  return TextEditor.enrichHTML(html, { async: false });
+Handlebars.registerHelper('enrichHTML', (html) => {
+  if (!html) return "";
+  return new Handlebars.SafeString(
+    foundry.applications.ux.TextEditor.implementation.enrichHTML(html) ?? ""
+  );
 });
 
 // Handle v12 removal of this helper
 Handlebars.registerHelper('select', function (selected, options) {
-  const escapedValue = RegExp.escape(Handlebars.escapeExpression(selected));
-  const rgx = new RegExp(' value=[\"\']' + escapedValue + '[\"\']');
+  const escaped = Handlebars.escapeExpression(selected).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const rgx = new RegExp(' value=[\"\']' + escaped + '[\"\']');
   const html = options.fn(this);
   return html.replace(rgx, "$& selected");
 });
@@ -55,15 +60,44 @@ Hooks.once("init", async function () {
 
   // Define custom Entity classes
   CONFIG.Actor.documentClass = WOINActor;
+  CONFIG.Actor.dataModels = {
+    character: models.WOINCharacterData,
+    spacecraft: models.WOINSpacecraftData
+  };
+  CONFIG.Item.dataModels = {
+    item: models.WOINItemData,
+    skill: models.WOINSkillData,
+    exploit: models.WOINExploitData,
+    language: models.WOINLanguageData,
+    ship_computer: models.WOINShipComputerData,
+    ship_sensor: models.WOINShipSensorData,
+    ship_ftl: models.WOINShipFTLData,
+    ship_subliminal: models.WOINShipSubliminalData,
+    ship_weapon: models.WOINShipWeaponData,
+    ship_facilities: models.WOINShipFacilitiesData,
+    ship_systems: models.WOINShipSystemsData,
+    ship_hangar: models.WOINShipHangarData,
+    ship_shield: models.WOINShipShieldData,
+    ship_armor: models.WOINShipArmorData,
+    ship_quirk: models.WOINShipQuirkData
+  };
 
   // Register sheet application classes
-  Actors.unregisterSheet("core", ActorSheet);
-  Actors.registerSheet("dnd5e", SimpleActorSheet, { makeDefault: true });
-  Items.unregisterSheet("core", ItemSheet);
-  Items.registerSheet("dnd5e", SimpleItemSheet, { types: ["item"], makeDefault: true });
-  Items.registerSheet("dnd5e", SimpleExploitSheet, { types: ["skill"], makeDefault: true });
-  Items.registerSheet("dnd5e", SimpleExploitSheet, { types: ["language"], makeDefault: true });
-  Items.registerSheet("dnd5e", SimpleExploitSheet, { types: ["exploit"], makeDefault: true });
+  foundry.documents.collections.Actors.unregisterSheet("core", foundry.appv1.sheets.ActorSheet);
+  foundry.documents.collections.Actors.registerSheet("woinfoundry", SimpleActorSheet, { makeDefault: true });
+  foundry.documents.collections.Items.unregisterSheet("core", foundry.appv1.sheets.ItemSheet);
+  foundry.documents.collections.Items.registerSheet("woinfoundry", SimpleItemSheet, { types: ["item"], makeDefault: true });
+  foundry.documents.collections.Items.registerSheet("woinfoundry", SimpleExploitSheet, { types: ["skill"], makeDefault: true });
+  foundry.documents.collections.Items.registerSheet("woinfoundry", SimpleExploitSheet, { types: ["language"], makeDefault: true });
+  foundry.documents.collections.Items.registerSheet("woinfoundry", SimpleExploitSheet, { types: ["exploit"], makeDefault: true });
+
+  const shipTypes = [
+    "ship_computer", "ship_sensor", "ship_ftl", "ship_subliminal", "ship_weapon",
+    "ship_facilities", "ship_systems", "ship_hangar", "ship_shield", "ship_armor", "ship_quirk"
+  ];
+  shipTypes.forEach(type =>
+    foundry.documents.collections.Items.registerSheet("woinfoundry", SimpleShipItemSheet, { types: [type], makeDefault: true })
+  );
 
 
   // Register system settings
@@ -106,7 +140,12 @@ Hooks.once("init", async function () {
   root.style.setProperty('--invertcyan', game.settings.get("woinfoundry", "InvertedPrimaryColour"));
 
   Hooks.on("closeSettingsConfig", () => {
+    const root = document.querySelector(':root');
     root.style.setProperty('--cyan', game.settings.get("woinfoundry", "PrimaryColour"));
     root.style.setProperty('--invertcyan', game.settings.get("woinfoundry", "InvertedPrimaryColour"));
   });
+});
+
+Hooks.on("preCreateItem", (item) => {
+  item.updateSource({ name: item.type });
 });

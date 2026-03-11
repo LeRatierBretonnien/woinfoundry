@@ -112,25 +112,146 @@
 
 /* Chatlog Styling: */
 
-#chat-log .chat-message {
+:is(#chat-log, .chat-log) .chat-message {
     color: var(--cyan);
     background: var(--background-cyan);
+    background-image: url("../Icons/tilinghexagon.svg");
+    background-repeat: repeat;
+    background-size: 100.2px;
     border: 1px solid var(--cyan);
 }
 
-#chat-log .message-header {
+:is(#chat-log, .chat-log) .message-header {
     color: var(--cyan);
 }
 
-#chat-log .dice-tooltip, #chat-log .dice-formula, #chat-log .dice-total {
+:is(#chat-log, .chat-log) .dice-tooltip, :is(#chat-log, .chat-log) .dice-formula, :is(#chat-log, .chat-log) .dice-total {
     border: 1px solid var(--cyan);
+    background-color: rgba(10, 16, 20, 0.85);
+    color: #fff;
 }
 
-#chat-log .whisper   {
+:is(#chat-log, .chat-log) .dice-roll .dice-result {
+    border-top: 1px solid rgba(0, 255, 255, 0.35);
+}
+
+:is(#chat-log, .chat-log) .woin-chat-flavor {
+    border: 1px solid rgba(0, 255, 255, 0.45);
+    border-radius: 6px;
+    padding: 6px 8px;
+    margin-bottom: 6px;
+    background: rgba(7, 13, 16, 0.75);
+}
+
+:is(#chat-log, .chat-log) .woin-chat-flavor--info {
+    border-style: dashed;
+}
+
+:is(#chat-log, .chat-log) .woin-chat-flavor__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+:is(#chat-log, .chat-log) .woin-chat-flavor__avatar {
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--cyan);
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+:is(#chat-log, .chat-log) .woin-chat-flavor__meta {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+:is(#chat-log, .chat-log) .woin-chat-flavor__title {
+    color: var(--cyan);
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+:is(#chat-log, .chat-log) .woin-chat-flavor__subtitle {
+    color: #d0ffff;
+    font-size: 0.8rem;
+    line-height: 1.2;
+}
+
+:is(#chat-log, .chat-log) .woin-chat-flavor__footer {
+    margin-top: 4px;
+    padding-top: 4px;
+    border-top: 1px solid rgba(0, 255, 255, 0.25);
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 0.78rem;
+}
+
+:is(#chat-log, .chat-log) .woin-chat-tags {
+    margin-top: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+:is(#chat-log, .chat-log) .woin-chat-tag {
+    display: inline-block;
+    padding: 1px 6px;
+    border: 1px solid rgba(0, 255, 255, 0.35);
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.25);
+    color: #dff;
+    font-size: 0.72rem;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+
+:is(#chat-log, .chat-log) .woin-chat-formula {
+    color: #fff;
+    font-family: monospace;
+}
+
+:is(#chat-log, .chat-log) .woin-chat-luck {
+    color: #ffd166;
+}
+
+:is(#chat-log, .chat-log) .woin-chat-mode {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    border: 1px solid currentColor;
+    border-radius: 10px;
+    padding: 1px 6px;
+    letter-spacing: 0.02em;
+}
+
+:is(#chat-log, .chat-log) .woin-chat-mode--public {
+    color: var(--cyan);
+}
+
+:is(#chat-log, .chat-log) .woin-chat-mode--private {
     color: var(--whisper-colour);
 }
 
-#chat-log .blind {
+:is(#chat-log, .chat-log) .woin-chat-mode--blind {
+    color: var(--blind-colour);
+}
+
+:is(#chat-log, .chat-log) .woin-chat-body {
+    border: 1px solid rgba(0, 255, 255, 0.25);
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.25);
+    color: #fff;
+    padding: 6px 8px;
+}
+
+:is(#chat-log, .chat-log) .whisper   {
+    color: var(--whisper-colour);
+}
+
+:is(#chat-log, .chat-log) .blind {
     color: var(--blind-colour);
 }
 
@@ -154,6 +275,23 @@
     color: var(--cyan);;
     border: #00ABDD solid 2px;
     border-style: ridge;
+}
+
+.sheet.item .sheet-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.sheet.item .sheet-header .profile-img {
+    width: 96px;
+    height: 96px;
+    flex: 0 0 96px;
+    object-fit: contain;
+}
+
+.sheet.item .sheet-header .header-fields {
+    flex: 1 1 auto;
 }
 
 
@@ -408,7 +546,7 @@ input[type=number] {
 }
 
 .woin .sheet-combat h3 {
-    margin-bottom: 0px;
+    margin: 0;
     height: 10px;
     width: 100%;
     text-align: center;
@@ -416,6 +554,7 @@ input[type=number] {
 
 .woin .sheet-combat ul {
     padding: 0px;
+    margin: 0;
     display: flex;
     flex-wrap: wrap;
     width: 100%;
@@ -435,10 +574,11 @@ input[type=number] {
 .woin .sheet-combat input {
     position: relative;
     border: none;
-    left: 10px;
+    left: 3px;
     top: -6px;
-    width: 40px;
+    width: 54px;
     text-align: center;
+    background: transparent;
 }
 
 .woin .sheet-combat span {
@@ -1014,35 +1154,147 @@ input[type=number] {
 
 /* Roll Dialogue: */
 
-.roll-dialogue .form-group:hover .tooltip {
+.roll-dialog-app .window-content {
+    background-image: url("../Icons/tilinghexagon.svg");
+    background-repeat: repeat;
+    background-size: 100.2px;
+    background-color: var(--background-cyan);
+    color: var(--cyan);
+    border: #00ABDD solid 2px;
+    border-style: ridge;
+    overflow-y: auto;
+    padding: 8px;
+}
+
+.roll-dialog-app .window-content button {
+    color: var(--cyan);
+}
+
+.roll-dialogue,
+.roll-dialog-app .dialog-content {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 8px;
+    border: 1px solid var(--cyan);
+    border-radius: 6px;
+    background: rgba(10, 20, 24, 0.65);
+}
+
+.roll-dialogue .roll-section-title,
+.roll-dialog-app .dialog-content .roll-section-title {
+    margin: 8px 0 2px 0;
+    padding: 2px 6px;
+    border-left: 3px solid var(--cyan);
+    color: var(--cyan);
+    font-size: 1.05rem;
+    text-shadow: 1px 1px 1px #000;
+}
+
+.roll-dialogue .form-group,
+.roll-dialog-app .dialog-content .form-group {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 2px;
+    padding: 5px 8px;
+    border: 1px solid rgba(0, 255, 255, 0.25);
+    border-radius: 4px;
+    background: rgba(8, 15, 18, 0.55);
+}
+
+.roll-dialogue .form-group label,
+.roll-dialog-app .dialog-content .form-group label {
+    color: var(--cyan);
+    text-shadow: 1px 1px 1px #000;
+}
+
+.roll-dialogue .form-group input[type="text"],
+.roll-dialogue .form-group input[type="number"],
+.roll-dialog-app .dialog-content .form-group input[type="text"],
+.roll-dialog-app .dialog-content .form-group input[type="number"] {
+    width: 90px;
+    color: #fff;
+    border: 1px solid var(--cyan);
+    background: rgba(0, 0, 0, 0.35);
+}
+
+.roll-dialogue .form-group input[type="checkbox"],
+.roll-dialog-app .dialog-content .form-group input[type="checkbox"] {
+    justify-self: end;
+    accent-color: var(--invertcyan);
+}
+
+.roll-dialogue .form-group .tooltip,
+.roll-dialog-app .dialog-content .form-group .tooltip {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 8px;
+    z-index: 5;
+    width: 240px;
+    padding: 6px 8px;
+    border: 1px solid var(--cyan);
+    border-radius: 4px;
+    background: #11181b;
+    color: #fff;
+    font-size: 0.8rem;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+
+.roll-dialogue .form-group:hover .tooltip,
+.roll-dialog-app .dialog-content .form-group:hover .tooltip {
     visibility: visible;
     opacity: 1;
-    width: 120px;
 }
-/* .roll-dialogue .form-group .tooltip::after {
-    content: "";
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    margin-left: -5px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: #555 transparent transparent transparent;
-} */
-.roll-dialogue .form-group .tooltip {
-      visibility: hidden;
-      width: 0px;
-      background-color: #555;
-      color: #fff;
-      text-align: center;
-      padding: 5px 0;
-      border-radius: 6px;
-      position: absolute;
-      z-index: 1;
-      left: -35%;
-      bottom: 495px;
-      opacity: 0;
-      transition: opacity 0.3s;
+
+.roll-dialog-attack {
+    width: min(980px, 96vw) !important;
+}
+
+.roll-dialog-attack .window-content {
+    max-height: 82vh;
+}
+
+.roll-dialog-attack .dialog-content {
+    display: block;
+    border: none;
+    background: transparent;
+    padding: 0;
+}
+
+.roll-dialog-attack .woin-roll-combat-layout {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.roll-dialog-attack .woin-roll-panel {
+    border: 1px solid rgba(0, 255, 255, 0.25);
+    border-radius: 6px;
+    background: rgba(8, 15, 18, 0.6);
+    padding: 8px;
+}
+
+.roll-dialog-attack .woin-roll-combat-core {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.roll-dialog-attack .woin-roll-combat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.roll-dialog-attack .roll-section-title {
+    margin-top: 0;
 }
 
 

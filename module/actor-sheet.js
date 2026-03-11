@@ -4,41 +4,63 @@
  */
 
 import { DiceWOIN } from "./dice.js"
+const { HandlebarsApplicationMixin } = foundry.applications.api;
 const poolSkill = [0, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8]
 
-export class SimpleActorSheet extends ActorSheet {
+export class SimpleActorSheet extends HandlebarsApplicationMixin(foundry.applications.sheets.ActorSheetV2) {
 
 
   // ---------------------------------------------------------------------------------
   // Important Initialization Functions for Foundry:
 
   /** @override */
-  static get defaultOptions() {
-    const classes = ["woin", "sheet", "actor"];
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: classes,
-      template: "systems/woinfoundry/templates/actor-sheet.html",
+  static DEFAULT_OPTIONS = {
+    classes: ["woin", "sheet", "actor"],
+    position: {
       width: 831,
-      height: 800,
-      resizable: true,
-      tabs: [{ navSelector: ".sheet-tabs", contentSelector: ".sheet-body", initial: "description" }],
-      scrollY: [".sheet-body"]
-    });
+      height: 800
+    },
+    form: {
+      handler: SimpleActorSheet.#onSubmitForm,
+      submitOnChange: true,
+      closeOnSubmit: false
+    },
+    window: {
+      resizable: true
+    }
+  };
+
+  static PARTS = {
+    main: {
+      template: "systems/woinfoundry/templates/actor-sheet.html"
+    }
+  };
+
+  static async #onSubmitForm(event, form, formData) {
+    if (!this.isEditable) return;
+    const submitData = this._processFormData(event, form, formData);
+    return this._processSubmitData(event, form, submitData);
   }
 
   /** @override */
-  async getData() {
-    const baseData = super.getData();
-    //console.log("WOIN | actor-sheet.js getData baseData ", baseData);
+  async _prepareContext() {
+    const context = await super._prepareContext();
+    const actorDocument = this.document ?? this.actor;
+    const baseData = {
+      actor: actorDocument,
+      items: actorDocument.items,
+      effects: actorDocument.effects
+    };
     let sheetData = {
+      ...context,
       owner: this.isOwner,
       editable: this.isEditable,
       actor: baseData,
-      items: baseData.items,
-      system: baseData.actor.system,
+      items: actorDocument.items,
+      system: actorDocument.system,
     };
     await this.prepareItems(sheetData.items);
-    console.log("WOIN | actor-sheet.js getData sheetData ", sheetData);
+    console.log("WOIN | actor-sheet.js _prepareContext sheetData ", sheetData);
     return sheetData;
   }
   // ================================================================================
@@ -47,7 +69,7 @@ export class SimpleActorSheet extends ActorSheet {
     let itemUpdates = [];
     for (let item of items) {
       if (item.system.description) {
-        item.system.descriptionHTML = await TextEditor.enrichHTML(item.system.description);
+        item.system.descriptionHTML = await foundry.applications.ux.TextEditor.implementation.enrichHTML(item.system.description, { async: true });
       }
       if (item.type === "skill") {
         let gradePool = this.actor.system.attributes[item.system.attribute].dice;
@@ -66,26 +88,65 @@ export class SimpleActorSheet extends ActorSheet {
     }
     if (itemUpdates.length > 0) {
       console.log("WOIN | actor-sheet.js prepareItems itemUpdates ", itemUpdates);
-      setTimeout(() => {
-        this.actor.updateEmbeddedDocuments("Item", itemUpdates);
-        this.render(true);
-      }, 100);
+      this.actor.updateEmbeddedDocuments("Item", itemUpdates)
+        .then(() => this.render(false))
+        .catch(err => console.error("WOIN | actor-sheet.js prepareItems: failed to update items", err));
     }
   }
 
   // ---------------------------------------------------------------------------------
   // Resize code for responsive design:
   _onResize() {
+    if (!this.element) return;
+    const rootElement = this.element;
     if (game.settings.get("woinfoundry", "verticalSheet")) {
-      if (this.position.width < 830) {
-        $(this.form).addClass("vertical-sheet");
+      if (this.position.width < 830 || rootElement.clientWidth < 830) {
+        rootElement.classList.add("vertical-sheet");
       }
       else {
-        $(this.form).removeClass("vertical-sheet");
+        rootElement.classList.remove("vertical-sheet");
       }
     }
   }
   // ================================================================================
+
+  /** @override */
+  _onRender(context, options) {
+    super._onRender(context, options);
+    this._activateLegacyTabs();
+    this._onResize();
+    this.activateListeners($(this.element));
+  }
+
+  _activateLegacyTabs() {
+    const root = this.element;
+    if (!root) return;
+    const tabs = Array.from(root.querySelectorAll(".sheet-tabs [data-tab]"));
+    const tabPanels = Array.from(root.querySelectorAll(".sheet-body .tab[data-tab]"));
+    if (!tabs.length || !tabPanels.length) return;
+
+    const setActiveTab = (tabName) => {
+      tabs.forEach((tab) => {
+        const active = tab.dataset.tab === tabName;
+        tab.classList.toggle("active", active);
+      });
+      tabPanels.forEach((panel) => {
+        const active = panel.dataset.tab === tabName;
+        panel.classList.toggle("active", active);
+        panel.hidden = !active;
+      });
+    };
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", (event) => {
+        event.preventDefault();
+        setActiveTab(tab.dataset.tab);
+      });
+    });
+
+    const initialTab = root.querySelector(".sheet-tabs .item.active")?.dataset.tab || tabs[0].dataset.tab;
+    setActiveTab(initialTab);
+  }
 
 
   // ---------------------------------------------------------------------------------
@@ -93,60 +154,49 @@ export class SimpleActorSheet extends ActorSheet {
 
   /** @override */
   activateListeners(html) {
-    super.activateListeners(html);
-
-    this._onResize();
-
-    // Setting up custom colours:
-
     // Everything below here is only needed if the sheet is editable
-    if (!this.options.editable) return;
+    if (!this.isEditable) return;
 
     // Update Inventory Item
     html.find('.item-edit').click(ev => {
       const li = $(ev.currentTarget);
       const item = this.actor.items.get(li[0].dataset.itemId);
-      item.sheet.render(item);
+      item.sheet.render(true);
     });
 
     // Delete Inventory Item
     html.find('.item-delete').click(async ev => {
       let html = await renderTemplate("systems/woinfoundry/templates/chat/delete.html");
+      const actor = this.actor;
+      const sheet = this;
 
-      function del() {
+      const del = async () => {
         const li = $(ev.currentTarget).parents(".item");
-        this.actor.deleteOwnedItem(li.data("itemId"));
-        li.slideUp(200, () => this.render(false));
-      }
+        await actor.deleteEmbeddedDocuments("Item", [li.data("itemId")]);
+        li.slideUp(200, () => sheet.render(false));
+      };
 
-      return new Promise(resolve => {
-        new Dialog({
-          title: "Please Confirm",
-          content: html,
-          buttons: {
-            delete: {
-              label: "delete",
-              callback: html => { del(); }
-            },
-            back: {
-              label: "back",
-              callback: html => { }
-            }
+      new Dialog({
+        title: "Please Confirm",
+        content: html,
+        buttons: {
+          delete: {
+            label: "delete",
+            callback: html => { del(); }
           },
-          default: "back",
-          close: html => {
-
+          back: {
+            label: "back",
+            callback: html => { }
           }
-        }, null).render(true);
-      });
+        },
+        default: "back"
+      }, null).render(true);
     });
 
     // Setting up progress bar overflow:
-    let carryBar = (html.find(".carry-bar")[0]);
-    const max = carryBar.max;
-    if (carryBar.value === carryBar.max) {
-      // let newBar = foundry.utils.duplicate(carryBar);
-      // carryBar.parent().add(newBar);
+    const carryBar = html.find(".carry-bar")[0];
+    if (carryBar) {
+      const max = carryBar.max;
     }
 
     // Handling Effects:
@@ -176,38 +226,33 @@ export class SimpleActorSheet extends ActorSheet {
 
     // Adding new Items:
     html.find(".item-add").click(ev => {
-
-      const item = { name: "new item", type: "item", system: foundry.utils.duplicate(game.model.Item.item) };
+      const item = { name: "new item", type: "item" };
       this.actor.createEmbeddedDocuments("Item", [item], { renderSheet: false });
     });
 
     // Flipping Item Equipped State:
-    html.find(".item-equip").click(ev => {
+    html.find(".item-equip").click(async ev => {
       ev.preventDefault();
 
       const dataset = ev.currentTarget.dataset;
       const item = this.actor.items.get(dataset.itemId);
 
-      setTimeout(() => {
-        this.actor.updateEmbeddedDocuments("Item", [{ _id: item.id, "system.equipped": !item.system.equipped }]);
-      }, 100);
+      await this.actor.updateEmbeddedDocuments("Item", [{ _id: item.id, "system.equipped": !item.system.equipped }]);
     });
 
     // Flipping Item Carried State:
-    html.find(".item-carry").click(ev => {
+    html.find(".item-carry").click(async ev => {
       ev.preventDefault();
 
       const dataset = ev.currentTarget.dataset;
       const item = this.actor.items.get(dataset.itemId);
 
-      setTimeout(() => {
-        this.actor.updateEmbeddedDocuments("Item", [{ _id: item.id, "system.carried": !item.system.carried, "equipped": false }]);
-      }, 100);
+      await this.actor.updateEmbeddedDocuments("Item", [{ _id: item.id, "system.carried": !item.system.carried, "system.equipped": false }]);
     });
 
     // Adding new Exploits:
     html.find(".exploit-add").click(ev => {
-      const item = { name: "new item", type: "exploit", system: foundry.utils.duplicate(game.model.Item.exploit) };
+      const item = { name: "new item", type: "exploit" };
       this.actor.createEmbeddedDocuments("Item", [item], { renderSheet: false });
     });
 
@@ -243,7 +288,7 @@ export class SimpleActorSheet extends ActorSheet {
         item.system.open = !item.system.open;
         this.actor.items.get(target.data().itemId).update(item);
       } catch (error) {
-
+        console.error("WOIN | actor-sheet.js: Error toggling item description:", error);
       }
 
     });
@@ -252,18 +297,16 @@ export class SimpleActorSheet extends ActorSheet {
     });
 
     // Handling updates to Combat Tab:
-    html.find(".combat-skill input").change(ev => {
+    html.find(".combat-skill input").change(async ev => {
       ev.preventDefault();
 
       const dataset = ev.currentTarget.dataset;
-      const item = this.actor.items.get(dataset.itemid);
+      const item = this.actor.items.get(dataset.itemId);
       const input = (ev.currentTarget.value);
 
       let newItem = foundry.utils.duplicate(item);
       if ( newItem.system.skill != input) {
-        setTimeout(() => {
-          this.actor.updateEmbeddedDocuments("Item", [{ _id: item.id, "system.skill": input }]);
-        }, 100);
+        await this.actor.updateEmbeddedDocuments("Item", [{ _id: item.id, "system.skill": input }]);
       }
     });
 
@@ -271,11 +314,14 @@ export class SimpleActorSheet extends ActorSheet {
     const draggables = document.querySelectorAll('.woin .draggable');
     const containers = document.querySelectorAll('.woin .container');
 
-    html.find('.display-to-chat').click(ev => {
+    html.find('.display-to-chat').click(async ev => {
+      const title = foundry.utils.escapeHTML(`${$(ev.currentTarget).data("title") || "Info"}`);
+      const rawDescription = `${$(ev.currentTarget).data("description") || ""}`;
+      const content = await foundry.applications.ux.TextEditor.implementation.enrichHTML(rawDescription, { async: true });
       let chatData = {
         user: game.user.id,
-        content: `${$(ev.currentTarget).data("description")}`,
-        flavor: `${$(ev.currentTarget).data("title")}`
+        content: `<div class="woin-chat-body">${content}</div>`,
+        flavor: `<div class="woin-chat-flavor woin-chat-flavor--info"><div class="woin-chat-flavor__title">${title}</div></div>`
       };
       chatData.speaker = ChatMessage.getSpeaker({ user: game.user });
       ChatMessage.create(chatData);
@@ -292,26 +338,10 @@ export class SimpleActorSheet extends ActorSheet {
     html.find(".advancement-input").change(ev => {
       this.updateAdvancement(ev);
     });
-    html.find(".advancement-add-gain").click(ev => {
-      let actor = foundry.utils.duplicate(this.actor);
-      actor.system.advancement.xp_gain.push({ name: "default", value: 0 });
-      this.actor.update(actor);
-    });
-    html.find(".advancement-add-spend").click(ev => {
-      let actor = foundry.utils.duplicate(this.actor);
-      actor.system.advancement.xp_spent.push({ name: "default", value: 0 });
-      this.actor.update(actor);
-    });
-    html.find(".advancement-remove-gain").click(ev => {
-      let actor = foundry.utils.duplicate(this.actor);
-      actor.system.advancement.xp_gain.splice(ev.currentTarget.dataset.index, 1);
-      this.actor.update(actor);
-    });
-    html.find(".advancement-remove-spend").click(ev => {
-      let actor = foundry.utils.duplicate(this.actor);
-      actor.system.advancement.xp_spent.splice(ev.currentTarget.dataset.index, 1);
-      this.actor.update(actor);
-    });
+    html.find(".advancement-add-gain").click(() => this._modifyAdvancementArray("xp_gain", "add"));
+    html.find(".advancement-add-spend").click(() => this._modifyAdvancementArray("xp_spent", "add"));
+    html.find(".advancement-remove-gain").click(ev => this._modifyAdvancementArray("xp_gain", "remove", ev.currentTarget.dataset.index));
+    html.find(".advancement-remove-spend").click(ev => this._modifyAdvancementArray("xp_spent", "remove", ev.currentTarget.dataset.index));
 
     // Inputs highlight on click:
     html.find(".sheet-global input, .tab.advancement input, .tab.combat input, .tab.skills input").click(ev => {
@@ -376,11 +406,7 @@ export class SimpleActorSheet extends ActorSheet {
       if (item.type === "item") {
         //console.log("WOIN | actor-sheet.js activateListeners item ", item);
         if (typeof item.system.carried === 'undefined') {
-          let newItem = foundry.utils.duplicate(item);
-          //console.log("WOIN | actor-sheet.js activateListeners newItem ", newItem);
-          newItem.system.carried = true;
-          const data = newItem.system;
-          item.update({ data });
+          item.update({ "system.carried": true });
         }
       }
     });
@@ -395,27 +421,6 @@ export class SimpleActorSheet extends ActorSheet {
     let html = await renderTemplate("systems/woinfoundry/templates/chat/confirmation.html");
 
     //console.log("WOIN | actor-sheet.js calculateMovement strength obj:",game.actors.get(this.actor.id).system.attributes.strength);
-
-    return new Promise(resolve => {
-      new Dialog({
-        title: "Please Confirm",
-        content: html,
-        buttons: {
-          yes: {
-            label: "yes",
-            callback: html => { calc(game.actors.get(this.actor.id)) }
-          },
-          no: {
-            label: "no",
-            callback: html => { }
-          }
-        },
-        default: "no",
-        close: html => {
-
-        }
-      }, null).render(true);
-    });
 
     function calc(originalActor) {
       let actor = foundry.utils.duplicate(originalActor);
@@ -489,6 +494,22 @@ export class SimpleActorSheet extends ActorSheet {
       // Horizontal = 2 * AGI ATTR
       // Vertical = STR ATTR, NOT EXCEED Horizontal
     }
+
+    new Dialog({
+      title: "Please Confirm",
+      content: html,
+      buttons: {
+        yes: {
+          label: "yes",
+          callback: html => { calc(game.actors.get(this.actor.id)) }
+        },
+        no: {
+          label: "no",
+          callback: html => { }
+        }
+      },
+      default: "no"
+    }, null).render(true);
   }
 
 
@@ -500,33 +521,28 @@ export class SimpleActorSheet extends ActorSheet {
   async deleteItem(event, actor) {
     let html = await renderTemplate("systems/woinfoundry/templates/chat/delete.html");
 
-    function del(actor) {
+    const del = async (actor) => {
       const li = $(event.target);
       const exploit = li.data().exploitcode || li.data().skillcode;
 
-      actor.deleteEmbeddedDocuments("Item", [exploit]);
-    }
+      await actor.deleteEmbeddedDocuments("Item", [exploit]);
+    };
 
-    return new Promise(resolve => {
-      new Dialog({
-        title: "Please Confirm",
-        content: html,
-        buttons: {
-          delete: {
-            label: "delete",
-            callback: html => { del(actor); }
-          },
-          back: {
-            label: "back",
-            callback: html => { }
-          }
+    new Dialog({
+      title: "Please Confirm",
+      content: html,
+      buttons: {
+        delete: {
+          label: "delete",
+          callback: html => { del(actor); }
         },
-        default: "back",
-        close: html => {
-
+        back: {
+          label: "back",
+          callback: html => { }
         }
-      }, null).render(true);
-    });
+      },
+      default: "back"
+    }, null).render(true);
   }
 
   async onClickExploitControl(event, task) {
@@ -544,17 +560,8 @@ export class SimpleActorSheet extends ActorSheet {
 
     // Add new attribute
     if (task === "create") {
-
-      const item = {
-        type: "skill",
-        name: "newskill",
-        attribute: "strength",
-        score: 0,
-        pool: 0
-      }
-
+      const item = { type: "skill", name: "newskill" };
       this.actor.createEmbeddedDocuments("Item", [item]);
-
     }
 
     // Remove existing attribute
@@ -586,20 +593,14 @@ export class SimpleActorSheet extends ActorSheet {
     switch (action) {
       case "add":
         //console.log("WOIN | actor-sheet.js manageEffect adding new effect");
-        ActiveEffect.create({
-          label: "New Effect",
+        await ActiveEffect.create({
+          name: "New Effect",
           icon: "icons/svg/aura.svg",
-          origin: "Temp",
+          origin: this.actor.uuid,
           disabled: false,
-          changes: [
-            {
-              "key": "name",
-              "mode": 2,
-              "value": "3"
-            }
-          ],
-          description: "woo"
-        }, game.actors.entries[0]).create();
+          changes: [],
+          description: ""
+        }, { parent: this.actor });
         break;
       case "edit":
         //console.log("WOIN | actor-sheet.js manageEffect editing existing effect with ID ", effectId);
@@ -611,7 +612,7 @@ export class SimpleActorSheet extends ActorSheet {
         break;
       case "toggle":
         //console.log("WOIN | actor-sheet.js manageEffect toggling existing effect with ID ", effectId);
-        return effect.update({ disabled: !effect.system.disabled });
+        return effect.update({ disabled: !effect.disabled });
         break;
       default:
         //console.log("WOIN | actor-sheet.js manageEffect the specified effect action is not supported. Please use add/edit/delete.");
@@ -687,47 +688,50 @@ export class SimpleActorSheet extends ActorSheet {
     const dataset = ev.currentTarget.dataset;
     const item = this.actor.items.get(dataset.itemId);
     const input = ($(ev.currentTarget)[0].value);
+    const binding = dataset.binding;
 
     if (!item) {
       return;
     }
-    if (item.system[dataset.binding] && item.system[dataset.binding] === input) {
+    if (!binding) {
       return;
     }
 
-    await item.update({
-      [dataset.binding]: input
-    });
-
-    let data = item.system;
-    const pool = [0, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8]
-    //console.log("WOIN | actor-sheet.js updateSkill data ", data);
-    let actorData = this.actor.system;
-    if (data.gradepool != actorData.attributes[`${data.attribute}`]["dice"]) {
-      data.gradepool = actorData.attributes[`${data.attribute}`]["dice"];
+    const previousValue = foundry.utils.getProperty(item, binding);
+    const parsedInput = binding === "system.score" ? Number(input) : input;
+    if (previousValue === parsedInput) {
+      return;
+    }
+    const updates = { [binding]: parsedInput };
+    const data = foundry.utils.duplicate(item.system);
+    if (binding.startsWith("system.")) {
+      foundry.utils.setProperty(data, binding.replace(/^system\./, ""), parsedInput);
     }
 
-    if (data.score >= pool.length) {
-      data.score = pool.length - 1;
-      data.pool = pool[data.score];
-      data.gradepool = actorData.attributes[`${data.attribute}`]["dice"];
-    }
+    const pool = [0, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8];
+    const actorData = this.actor.system;
+    const attributeDice = actorData.attributes?.[data.attribute]?.dice ?? 0;
+    let score = Number(data.score) || 0;
+    score = Math.max(0, Math.min(pool.length - 1, score));
 
-    if (data.score < 0) {
-      data.score = 0;
-      data.pool = pool[data.score];
-      data.gradepool = actorData.attributes[`${data.attribute}`]["dice"];
-    }
+    updates["system.score"] = score;
+    updates["system.pool"] = pool[score];
+    updates["system.gradepool"] = attributeDice;
 
-    if (data.pool != pool[data.score]) {
-      data.pool = pool[data.score];
-      data.gradepool = actorData.attributes[`${data.attribute}`]["dice"];
-    }
-
-    console.log("WOIN | actor-sheet.js updateSkill data ", data);
-    item.update({ data });
+    await item.update(updates);
   }
 
+
+  _modifyAdvancementArray(arrayKey, action, index = null) {
+    const actor = foundry.utils.duplicate(this.actor);
+    const arr = actor.system.advancement[arrayKey];
+    if (action === "add") {
+      arr.push({ name: "default", value: 0 });
+    } else if (action === "remove" && index != null) {
+      arr.splice(index, 1);
+    }
+    this.actor.update(actor);
+  }
 
   updateAdvancement(ev) {
     const target = ev.currentTarget;
