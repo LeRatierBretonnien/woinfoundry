@@ -81,36 +81,41 @@
     </div>
 
     <div class="global-panel sheet-combat">
-      <h3>Defense:</h3>
-      <ul>
-        <li>
-          <span>Melee:</span>
-          <input type="number" name="system.defense.melee" value="{{system.defense.melee}}">
-        </li>
-        <li>
-          <span>Ranged:</span>
-          <input type="number" name="system.defense.ranged" value="{{system.defense.ranged}}">
-        </li>
-        <li>
-          <span>Mental:</span>
-          <input type="number" name="system.defense.mental" value="{{system.defense.mental}}">
-        </li>
-        <li>
-          <span>Vital:</span>
-          <input type="number" name="system.defense.vital" value="{{system.defense.vital}}">
-        </li>
-      </ul>
-      <h3>Soak:</h3>
-      <ul>
-        <li>
-          <span>Natural</span>
-          <input type="text" name="system.soak.natural" value="{{system.soak.natural}}">
-        </li>
-        <li>
-          <span>Armor</span>
-          <input type="text" name="system.soak.armor" value="{{system.soak.armor}}">
-        </li>
-      </ul>
+      <div class="sheet-combat-block sheet-combat-defense">
+        <h3>Defense</h3>
+        <ul>
+          <li>
+            <span>Melee:</span>
+            <input type="number" name="system.defense.melee" value="{{system.defense.melee}}">
+          </li>
+          <li>
+            <span>Ranged:</span>
+            <input type="number" name="system.defense.ranged" value="{{system.defense.ranged}}">
+          </li>
+          <li>
+            <span>Mental:</span>
+            <input type="number" name="system.defense.mental" value="{{system.defense.mental}}">
+          </li>
+          <li>
+            <span>Vital:</span>
+            <input type="number" name="system.defense.vital" value="{{system.defense.vital}}">
+          </li>
+        </ul>
+      </div>
+
+      <div class="sheet-combat-block sheet-combat-soak">
+        <h3>Soak</h3>
+        <ul>
+          <li>
+            <span>Natural</span>
+            <input type="text" name="system.soak.natural" value="{{system.soak.natural}}">
+          </li>
+          <li>
+            <span>Armor</span>
+            <input type="text" name="system.soak.armor" value="{{system.soak.armor}}">
+          </li>
+        </ul>
+      </div>
     </div>
   </section>
 

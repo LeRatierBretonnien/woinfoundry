@@ -146,6 +146,8 @@ Hooks.once("init", async function () {
   });
 });
 
-Hooks.on("preCreateItem", (item) => {
+Hooks.on("preCreateItem", (item, data) => {
+  const incomingName = `${data?.name ?? ""}`.trim();
+  if (incomingName.length > 0) return;
   item.updateSource({ name: item.type });
 });

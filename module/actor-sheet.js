@@ -100,7 +100,8 @@ export class SimpleActorSheet extends HandlebarsApplicationMixin(foundry.applica
     if (!this.element) return;
     const rootElement = this.element;
     if (game.settings.get("woinfoundry", "verticalSheet")) {
-      if (this.position.width < 830 || rootElement.clientWidth < 830) {
+      const sheetWidth = Number(this.position?.width ?? rootElement.getBoundingClientRect().width ?? 0);
+      if (sheetWidth < 830) {
         rootElement.classList.add("vertical-sheet");
       }
       else {
@@ -118,6 +119,34 @@ export class SimpleActorSheet extends HandlebarsApplicationMixin(foundry.applica
     this.activateListeners($(this.element));
   }
 
+  /** @override */
+  async _onDropItemCreate(itemData, event) {
+    let preparedData = itemData;
+    const isGenericName = `${itemData?.name ?? ""}`.trim().toLowerCase() === "item";
+
+    if (isGenericName && event?.dataTransfer) {
+      try {
+        const raw = event.dataTransfer.getData("text/plain");
+        const dropData = raw ? JSON.parse(raw) : null;
+        const isEmbeddedDrop = `${dropData?.uuid ?? ""}`.startsWith("Actor.");
+
+        if (dropData?.type === "Item" && !isEmbeddedDrop) {
+          const source = dropData.uuid ? await fromUuid(dropData.uuid) : game.items.get(dropData.id);
+          if (source) {
+            preparedData = source.toObject();
+            delete preparedData._id;
+          }
+        }
+      } catch (error) {
+        console.warn("WOIN | actor-sheet.js _onDropItemCreate fallback to default data", error);
+      }
+    }
+
+    const createData = foundry.utils.duplicate(preparedData ?? {});
+    delete createData._id;
+    return this.actor.createEmbeddedDocuments("Item", [createData]);
+  }
+
   _activateLegacyTabs() {
     const root = this.element;
     if (!root) return;
@@ -126,6 +155,7 @@ export class SimpleActorSheet extends HandlebarsApplicationMixin(foundry.applica
     if (!tabs.length || !tabPanels.length) return;
 
     const setActiveTab = (tabName) => {
+      this._activeLegacyTab = tabName;
       tabs.forEach((tab) => {
         const active = tab.dataset.tab === tabName;
         tab.classList.toggle("active", active);
@@ -134,6 +164,7 @@ export class SimpleActorSheet extends HandlebarsApplicationMixin(foundry.applica
         const active = panel.dataset.tab === tabName;
         panel.classList.toggle("active", active);
         panel.hidden = !active;
+        panel.style.display = active ? "block" : "none";
       });
     };
 
@@ -144,7 +175,9 @@ export class SimpleActorSheet extends HandlebarsApplicationMixin(foundry.applica
       });
     });
 
-    const initialTab = root.querySelector(".sheet-tabs .item.active")?.dataset.tab || tabs[0].dataset.tab;
+    const initialTab = tabs.some((tab) => tab.dataset.tab === this._activeLegacyTab)
+      ? this._activeLegacyTab
+      : (root.querySelector(".sheet-tabs .item.active")?.dataset.tab || tabs[0].dataset.tab);
     setActiveTab(initialTab);
   }
 
@@ -301,11 +334,15 @@ export class SimpleActorSheet extends HandlebarsApplicationMixin(foundry.applica
       ev.preventDefault();
 
       const dataset = ev.currentTarget.dataset;
-      const item = this.actor.items.get(dataset.itemId);
+      const itemId = dataset.itemId ?? dataset.itemid;
+      const item = this.actor.items.get(itemId);
+      if (!item) {
+        console.error("WOIN | actor-sheet.js combat-skill change: missing item", { itemId, dataset });
+        return;
+      }
       const input = (ev.currentTarget.value);
 
-      let newItem = foundry.utils.duplicate(item);
-      if ( newItem.system.skill != input) {
+      if (item.system.skill != input) {
         await this.actor.updateEmbeddedDocuments("Item", [{ _id: item.id, "system.skill": input }]);
       }
     });
@@ -519,30 +556,32 @@ export class SimpleActorSheet extends HandlebarsApplicationMixin(foundry.applica
   // exploit-rows(items/exploits) and skills:
 
   async deleteItem(event, actor) {
-    let html = await renderTemplate("systems/woinfoundry/templates/chat/delete.html");
+    const html = await foundry.applications.handlebars.renderTemplate("systems/woinfoundry/templates/chat/delete.html");
+    const activeTab = this._activeLegacyTab ?? this.element?.querySelector(".sheet-tabs .item.active")?.dataset?.tab ?? null;
 
-    const del = async (actor) => {
-      const li = $(event.target);
+    const performDelete = async () => {
+      const li = $(event.currentTarget);
       const exploit = li.data().exploitcode || li.data().skillcode;
+      if (!exploit) {
+        ui.notifications.error("Unable to delete item: missing item id.");
+        return;
+      }
 
+      if (activeTab) this._activeLegacyTab = activeTab;
       await actor.deleteEmbeddedDocuments("Item", [exploit]);
+      await this.render(true);
     };
 
-    new Dialog({
-      title: "Please Confirm",
+    await foundry.applications.api.DialogV2.wait({
+      window: { title: "Please Confirm" },
+      classes: ["woin", "roll-dialog-app"],
       content: html,
-      buttons: {
-        delete: {
-          label: "delete",
-          callback: html => { del(actor); }
-        },
-        back: {
-          label: "back",
-          callback: html => { }
-        }
-      },
-      default: "back"
-    }, null).render(true);
+      buttons: [
+        { action: "delete", label: "delete", callback: async () => performDelete() },
+        { action: "back", label: "back", default: true }
+      ],
+      rejectClose: false
+    });
   }
 
   async onClickExploitControl(event, task) {

@@ -11,7 +11,8 @@ export class WOINActor extends Actor {
    * @returns {{ pool: number, found: boolean, skill: Item|null }}
    */
   _resolveSkillPool(skillName) {
-    const key = skillName.toLowerCase();
+    const key = `${skillName ?? ""}`.trim().toLowerCase();
+    if (!key) return { pool: 0, found: false, skill: null };
     const attr = this.system.attributes[key];
     if (attr) return { pool: attr.dice, found: true, skill: null };
     const skill = this.items.find(
@@ -174,28 +175,57 @@ export class WOINActor extends Actor {
         data.carry = {};
       }
       data.carry.carried = 0;
+      const combatItemUpdates = [];
+      const availableAttributes = Object.keys(data.attributes ?? {});
       actorData.items.forEach(item => {
-        if (item.type === "item" && item.system.carried === true) {
-          data.carry.carried += item.system.weight * item.system.quantity;
-          if (item.type != "skill") {
-            //console.log("WOIN | actorclass.js prepareData item ", item)
-            let itemData = item.system;
-            //console.log("WOIN | actorclass.js prepareData itemData ", itemData);
-            itemData.weapon.skilldamage = 0;
-            if (itemData.skill) {
-              const { pool: basePool, found, skill: matchedSkill } = this._resolveSkillPool(itemData.skill);
-              itemData.error = found ? "" : "error-red";
-              if (matchedSkill && matchedSkill.system.pool !== itemData.weapon.skilldamage) {
-                itemData.weapon.skilldamage = matchedSkill.system.pool;
+        if (item.type === "item") {
+          if (item.system.carried === true) {
+            data.carry.carried += item.system.weight * item.system.quantity;
+          }
+          //console.log("WOIN | actorclass.js prepareData item ", item)
+          let itemData = item.system;
+          //console.log("WOIN | actorclass.js prepareData itemData ", itemData);
+          itemData.weapon.skilldamage = 0;
+          let computedError = "error-red";
+          const rawAttribute = `${itemData.attribute ?? ""}`.trim().toLowerCase();
+          const firstAttributeToken = rawAttribute.split(/[,\s;/|]+/).find(Boolean) ?? "";
+          const normalizedAttribute = availableAttributes.includes(rawAttribute)
+            ? rawAttribute
+            : (availableAttributes.includes(firstAttributeToken) ? firstAttributeToken : (availableAttributes[0] ?? "strength"));
+          if (itemData.attribute !== normalizedAttribute) {
+            itemData.attribute = normalizedAttribute;
+            combatItemUpdates.push({ _id: item.id, "system.attribute": normalizedAttribute });
+          }
+          if (itemData.skill) {
+            const { pool: basePool, found, skill: matchedSkill } = this._resolveSkillPool(itemData.skill);
+            computedError = found ? "error-green" : "error-red";
+            const damageBonusOrigin = itemData.weapon.damage_bonus_origin ?? "skill";
+            if (damageBonusOrigin === "attribute") {
+              const attrKey = normalizedAttribute;
+              const attrDice = Number(data.attributes?.[attrKey]?.dice ?? 0);
+              if (data.attributes?.[attrKey]) {
+                itemData.weapon.skilldamage = attrDice;
               }
-              const poolValue = basePool + itemData.weapon.bonus_attack;
-              if (!item.system.weapon.attack || poolValue !== item.system.weapon.attack) {
-                itemData.weapon.attack = poolValue;
-              }
+            } else if (matchedSkill && matchedSkill.system.pool !== itemData.weapon.skilldamage) {
+              itemData.weapon.skilldamage = matchedSkill.system.pool;
             }
+            const poolValue = basePool + itemData.weapon.bonus_attack;
+            if (!item.system.weapon.attack || poolValue !== item.system.weapon.attack) {
+              itemData.weapon.attack = poolValue;
+            }
+          }
+          if ((item.system.error ?? "") !== computedError) {
+            combatItemUpdates.push({ _id: item.id, "system.error": computedError });
           }
         }
       });
+      if (combatItemUpdates.length > 0) {
+        setTimeout(() => {
+          this.updateEmbeddedDocuments("Item", combatItemUpdates).catch(err =>
+            console.error("WOIN | actorclass.js prepareData: failed to update combat item states", err)
+          );
+        }, 100);
+      }
 
       // Calculating Initiative:
       const { pool: initPool, found: initFound } = this._resolveSkillPool(data.initiative.skill);

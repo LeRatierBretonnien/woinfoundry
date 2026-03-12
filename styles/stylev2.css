@@ -271,7 +271,8 @@
     background-image: url("../Icons/tilinghexagon.svg");
     background-repeat: repeat;
     background-size: 100.2px;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
     color: var(--cyan);;
     border: #00ABDD solid 2px;
     border-style: ridge;
@@ -294,11 +295,13 @@
     flex: 1 1 auto;
 }
 
+.sheet.item .sheet-body .tab {
+    display: none;
+}
 
-
-
-
-
+.sheet.item .sheet-body .tab.active {
+    display: block;
+}
 
 /* ====================================================================== */
 
@@ -539,17 +542,23 @@ input[type=number] {
 
 .woin .sheet-combat {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     flex-wrap: wrap;
     min-width: 140px;
     background-color: var(--background-combat);
+    align-content: flex-start;
+    gap: 6px;
+    padding: 4px 0 6px;
 }
 
 .woin .sheet-combat h3 {
-    margin: 0;
-    height: 10px;
+    margin: 0 0 3px;
     width: 100%;
     text-align: center;
+    height: auto;
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
 }
 
 .woin .sheet-combat ul {
@@ -568,7 +577,7 @@ input[type=number] {
     display: inline-block;
     width: 60px;
     height: 50px;
-    margin-top: 10px;
+    margin-top: 2px;
 }
 
 .woin .sheet-combat input {
@@ -584,10 +593,19 @@ input[type=number] {
 .woin .sheet-combat span {
     position: relative;
     display: block;
-    top: -10px;
+    top: -8px;
     width: 70px;
     left: -5px;
     text-align: center;
+}
+
+.woin .sheet-combat .sheet-combat-block {
+    width: 100%;
+}
+
+.woin .sheet-combat .sheet-combat-soak {
+    padding-top: 2px;
+    border-top: 1px solid rgba(0, 255, 255, 0.25);
 }
 
 .woin .draggable {
@@ -1129,6 +1147,10 @@ input[type=number] {
     color: red !important;
 }
 
+.error-green {
+    color: #32cd32 !important;
+}
+
 
 
 
@@ -1441,7 +1463,7 @@ input[type=number] {
 
 /* Alternate Styling for Vertical Global: */
 
-.vertical-sheet.character-sheet {
+.vertical-sheet .character-sheet {
     flex-direction: column;
 }
 

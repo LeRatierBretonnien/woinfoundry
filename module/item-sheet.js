@@ -3,6 +3,19 @@
  * @extends {ItemSheet}
  */
 const { HandlebarsApplicationMixin } = foundry.applications.api;
+const DEFAULT_ATTRIBUTE_OPTIONS = [
+  "strength",
+  "agility",
+  "endurance",
+  "intuition",
+  "logic",
+  "willpower",
+  "charisma",
+  "luck",
+  "reputation",
+  "psionics",
+  "magic"
+];
 
 export class SimpleItemSheet extends HandlebarsApplicationMixin(foundry.applications.sheets.ItemSheetV2) {
   /** @override */
@@ -40,10 +53,13 @@ export class SimpleItemSheet extends HandlebarsApplicationMixin(foundry.applicat
   async _prepareContext() {
     const context = await super._prepareContext();
     const item = this.document;
+    const actorAttributes = Object.keys(item.parent?.system?.attributes ?? {});
+    const attributeOptions = actorAttributes.length ? actorAttributes : DEFAULT_ATTRIBUTE_OPTIONS;
     return {
       ...context,
       item,
       system: item.system,
+      attributeOptions,
       owner: this.isOwner,
       editable: this.isEditable
     };
@@ -70,6 +86,7 @@ export class SimpleItemSheet extends HandlebarsApplicationMixin(foundry.applicat
     if (!tabs.length || !tabPanels.length) return;
 
     const setActiveTab = (tabName) => {
+      this._activeLegacyTab = tabName;
       tabs.forEach((tab) => {
         tab.classList.toggle("active", tab.dataset.tab === tabName);
       });
@@ -87,7 +104,10 @@ export class SimpleItemSheet extends HandlebarsApplicationMixin(foundry.applicat
       });
     });
 
-    setActiveTab(root.querySelector(".sheet-tabs .item.active")?.dataset.tab || tabs[0].dataset.tab);
+    const preferredTab = tabs.some((tab) => tab.dataset.tab === this._activeLegacyTab)
+      ? this._activeLegacyTab
+      : (root.querySelector(".sheet-tabs .item.active")?.dataset.tab || tabs[0].dataset.tab);
+    setActiveTab(preferredTab);
   }
 
   /** @override */

@@ -58,7 +58,13 @@
                 <label>skill:</label>
                 <input type="text" name="system.skill" value="{{item.system.skill}}" data-dtype="text" />
                 <label>attribute:</label>
-                <input type="text" name="system.attribute" value="{{item.system.attribute}}" data-dtype="text" />
+                <select name="system.attribute">
+                    {{#select item.system.attribute}}
+                    {{#each attributeOptions as |attr|}}
+                    <option value="{{attr}}">{{attr}}</option>
+                    {{/each}}
+                    {{/select}}
+                </select>
             </div>
             <hr>
             <div class="resource">
@@ -102,6 +108,27 @@
                 <label>bonus damage:</label>
                 <input type="text" name="system.weapon.bonusdamage" value="{{item.system.weapon.bonusdamage}}" data-dtype="Number" />
             </div>
+            <div class="resource inline">
+                <label>damage bonus origin:</label>
+                <select name="system.weapon.damage_bonus_origin">
+                    {{#select item.system.weapon.damage_bonus_origin}}
+                    <option value="skill">skill</option>
+                    <option value="attribute">attribute</option>
+                    {{/select}}
+                </select>
+            </div>
+            {{#ifeq item.system.weapon.damage_bonus_origin "attribute"}}
+            <div class="resource inline">
+                <label>damage bonus attribute:</label>
+                <select name="system.attribute">
+                    {{#select item.system.attribute}}
+                    {{#each attributeOptions as |attr|}}
+                    <option value="{{attr}}">{{attr}}</option>
+                    {{/each}}
+                    {{/select}}
+                </select>
+            </div>
+            {{/ifeq}}
             <div class="resource inline">
                 <label>bonus attack:</label>
                 <input type="text" name="system.weapon.bonus_attack" value="{{item.system.weapon.bonus_attack}}" data-dtype="Number"/>
