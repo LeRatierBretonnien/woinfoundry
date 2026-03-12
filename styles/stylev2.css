@@ -313,11 +313,15 @@
     background-color: var(--background-basic);
 }
 
-.woin.actor .resource {
+.woin.actor .sheet-basic .resource {
     width: 100px;
     height: 60px;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+        "title title"
+        "value max";
+    align-items: center;
     text-align: center;
     vertical-align: top;
     margin: 2px;
@@ -326,49 +330,61 @@
     background-size: 100px;
 }
 
-.woin.actor .resource.health {
+.woin.actor .sheet-basic .resource.health {
     background-image: url(../Icons/health2.svg);
 }
 
-.woin.actor .resource.luck {
+.woin.actor .sheet-basic .resource.luck {
     background-image: url(../Icons/Luck.svg);
 }
 
-.woin.actor .resource.maxpool {
+.woin.actor .sheet-basic .resource.maxpool {
     background-image: url(../Icons/Maxpool.svg);
 }
 
-.woin.actor .resource.power {
+.woin.actor .sheet-basic .resource.power {
     background-image: url(../Icons/Power.svg);
 }
 
-.woin.actor .resource.health h4 {
+.woin.actor .sheet-basic .resource.health h4 {
     color: orangered;
 }
 
-.woin.actor .resource.luck h4 {
+.woin.actor .sheet-basic .resource.luck h4 {
     color: yellow;
 }
 
-.woin.actor .resource h4 {
-    margin: auto 1px;
-    padding-right: 4px;
-    position: relative;
-    left: -20px;
+.woin.actor .sheet-basic .resource h4 {
+    grid-area: title;
+    margin: 0;
+    padding: 0;
+    position: static;
 }
 
-.woin.actor .resource input {
-    margin: auto 1px;
+.woin.actor .sheet-basic .resource input {
+    margin: 0 auto;
+    display: block;
     width: 40px;
     border: transparent;
-    top: 6px;
-    left: 4px;
-    position: relative;
+    position: static;
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none;
+    -webkit-appearance: none;
+    appearance: none;
+    text-align: center;
+    justify-self: center;
+    align-self: center;
+    padding: 0;
+    transform: translateY(-4px);
 }
 
-.woin.actor .resource input:nth-child(odd) {
-    left: 51px;
-    top: -13px;
+.woin.actor .sheet-basic .resource input:nth-of-type(1) {
+    grid-area: value;
+}
+
+.woin.actor .sheet-basic .resource input:nth-of-type(2) {
+    grid-area: max;
 }
 
 .woin.item.resource.inline {
@@ -409,6 +425,7 @@
     border: none;
     text-align: center;
     font-size: 1.5em;
+    transform: translateY(-6px);
 }
 
 .woin .sheet-global input[type=number]::-webkit-outer-spin-button, .woin .sheet-global input[type=number]::-webkit-inner-spin-button {
@@ -434,7 +451,7 @@ input[type=number] {
 
 .woin .sheet-attributes label {
     margin: 0px auto;
-    top: 30px;
+    top: 20px !important;
     position: relative;
     left: -40px;
     color: orangered;
@@ -606,6 +623,33 @@ input[type=number] {
 .woin .sheet-combat .sheet-combat-soak {
     padding-top: 2px;
     border-top: 1px solid rgba(0, 255, 255, 0.25);
+}
+
+.woin .sheet-combat .sheet-combat-soak li {
+    width: calc(50% - 2px);
+    min-width: 64px;
+    height: 58px !important;
+    background: none !important;
+    background-image: none !important;
+    background-size: auto !important;
+    background-position: center !important;
+}
+
+.woin .sheet-combat .sheet-combat-soak span {
+    width: 100%;
+    left: 0;
+}
+
+.woin .sheet-combat .sheet-combat-soak input {
+    width: calc(100% - 8px);
+    left: 0;
+    top: -2px;
+    height: 38px !important;
+    line-height: 38px;
+    background-image: url(../Icons/Defence.svg) !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: 116% 38px !important;
 }
 
 .woin .draggable {

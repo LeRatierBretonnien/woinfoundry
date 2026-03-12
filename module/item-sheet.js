@@ -14,7 +14,8 @@ const DEFAULT_ATTRIBUTE_OPTIONS = [
   "luck",
   "reputation",
   "psionics",
-  "magic"
+  "magic",
+  "chi"
 ];
 
 export class SimpleItemSheet extends HandlebarsApplicationMixin(foundry.applications.sheets.ItemSheetV2) {
@@ -130,12 +131,31 @@ export class SimpleItemSheet extends HandlebarsApplicationMixin(foundry.applicat
     return normalized;
   }
 
+  _collectStringValues(values = []) {
+    return values
+      .map(value => `${value ?? ""}`.trim())
+      .filter(value => value !== "");
+  }
+
+  _parseDamageTypeText(text = "") {
+    return `${text ?? ""}`
+      .split(/[;,/|]+/)
+      .map(value => value.trim())
+      .filter(value => value !== "");
+  }
+
   async _syncDynamicArrays() {
     if (!this.document) return;
 
     const damageType = this.document.system.weapon?.damagetype ?? [];
+    const damageTypeText = `${this.document.system.weapon?.damagetypetext ?? ""}`;
     const ineffective = this.document.system.armor?.ineffective ?? [];
-    const normalizedDamageType = this._normalizeNullableArray(damageType);
+    const damageTypeValues = this._collectStringValues(damageType);
+    const resolvedDamageTypeValues = damageTypeValues.length
+      ? damageTypeValues
+      : this._parseDamageTypeText(damageTypeText);
+    const normalizedDamageType = this._normalizeNullableArray(resolvedDamageTypeValues);
+    const normalizedDamageTypeText = resolvedDamageTypeValues.join(", ");
     const normalizedIneffective = this._normalizeNullableArray(ineffective);
     const updates = {};
 
@@ -143,6 +163,9 @@ export class SimpleItemSheet extends HandlebarsApplicationMixin(foundry.applicat
 
     if (!arraysEqual(damageType, normalizedDamageType)) {
       updates["system.weapon.damagetype"] = normalizedDamageType;
+    }
+    if (damageTypeText !== normalizedDamageTypeText) {
+      updates["system.weapon.damagetypetext"] = normalizedDamageTypeText;
     }
     if (!arraysEqual(ineffective, normalizedIneffective)) {
       updates["system.armor.ineffective"] = normalizedIneffective;
@@ -158,12 +181,16 @@ export class SimpleItemSheet extends HandlebarsApplicationMixin(foundry.applicat
   activateListeners(html) {
     if (!this.isEditable) return;
 
-    html.find(".damage-array").change(async (ev) => {
-      const index = Number(ev.currentTarget.dataset.dindex);
-      const damagetype = [...(this.document.system.weapon?.damagetype ?? [])];
-      damagetype[index] = ev.currentTarget.value || null;
+    html.find('select[name="system.attribute"]').change(async (ev) => {
+      await this.document.update({ "system.attribute": ev.currentTarget.value });
+    });
+
+    html.find('input[name="system.weapon.damagetypetext"]').change(async (ev) => {
+      const damageTypeValues = this._parseDamageTypeText(ev.currentTarget.value);
+      const normalizedDamageType = this._normalizeNullableArray(damageTypeValues);
       await this.document.update({
-        "system.weapon.damagetype": this._normalizeNullableArray(damagetype)
+        "system.weapon.damagetype": normalizedDamageType,
+        "system.weapon.damagetypetext": damageTypeValues.join(", ")
       });
     });
     html.find(".ineffective-array").change(async (ev) => {

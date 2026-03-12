@@ -242,8 +242,26 @@ export class SimpleActorSheet extends HandlebarsApplicationMixin(foundry.applica
       this.calculateMovement();
     });
 
-    // Handling Updates to Attributes:
-    // html.find(".attribute input").change(ev => { this.updateAttributes(ev); });
+    // Ensure actor-level sheet fields persist reliably in v2 sheets.
+    html.find("input[name], select[name], textarea[name]").change(async ev => {
+      ev.preventDefault();
+      ev.stopImmediatePropagation();
+      const field = ev.currentTarget;
+      if (!field.closest(".character-sheet")) return;
+      if (field?.readOnly) return;
+      const path = field?.name;
+      if (!path) return;
+      if (!path.startsWith("system.") && path !== "name") return;
+
+      const rawValue = `${field.value ?? ""}`.trim();
+      const currentValue = foundry.utils.getProperty(this.actor, path);
+      const dtype = `${field.dataset?.dtype ?? ""}`.toLowerCase();
+      const inputType = `${field.type ?? ""}`.toLowerCase();
+      const shouldBeNumber = dtype === "number" || inputType === "number" || typeof currentValue === "number";
+      const value = shouldBeNumber ? (Number.isFinite(Number(rawValue)) ? Number(rawValue) : 0) : rawValue;
+
+      await this.actor.update({ [path]: value });
+    });
 
     // Handling Updates to Skills:
     html.find(".skills-value").change(ev => { this.updateSkill(ev); });
@@ -414,10 +432,12 @@ export class SimpleActorSheet extends HandlebarsApplicationMixin(foundry.applica
       const description = li.attributes['data-description'].value;
       const item = li.attributes['data-itemid'].value;
       const actor = li.attributes['data-actorid'].value;
+      const bonusAttack = li.attributes['data-bonus-attack'] ? Number(li.attributes['data-bonus-attack'].value) : 0;
       DiceWOIN.rollAttack({
         description: description,
         itemId: item,
-        actorId: actor
+        actorId: actor,
+        bonusAttackOverride: Number.isFinite(bonusAttack) ? bonusAttack : 0
       });
     });
     html.find('.rollable-general').click(ev => {

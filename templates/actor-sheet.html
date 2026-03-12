@@ -182,6 +182,7 @@
             <input class="{{item.system.error}}" style="display:inline-block;" data-itemId="{{item._id}}" type="text"
               value="{{item.system.skill}}">
             <a class="rollable-attack" data-itemId="{{item._id}}" data-actorId="{{../actor.actor.id}}"
+              data-bonus-attack="{{item.system.weapon.bonus_attack}}"
               data-description="{{item.name}}" style="display:inline-block">⚄</a>
           </span>
           <a data-description="{{item.system.weapon.damagetypetext}}" data-skill-dice="{{item.system.weapon.damagedice}}"

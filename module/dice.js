@@ -147,7 +147,7 @@ export class DiceWOIN {
         // TODO: Is this even needed?
     }
 
-    static async rollAttack({ itemId = null, actorId = null, description = null }) {
+    static async rollAttack({ itemId = null, actorId = null, description = null, bonusAttackOverride = null }) {
         const actor = game.actors.get(actorId);
         if (!actor) {
             ui.notifications.error("Actor not found");
@@ -184,17 +184,21 @@ export class DiceWOIN {
         }
 
         const capped = Math.max(0, Math.min(cap, skillPool + attribute));
+        const weaponBonusAttack = Number.isFinite(Number(bonusAttackOverride))
+            ? Number(bonusAttackOverride)
+            : Number(item.system?.weapon?.bonus_attack ?? 0);
+        const baseAttackDice = Math.max(0, capped + weaponBonusAttack);
         const speaker = ChatMessage.getSpeaker();
         const flavor = description || "";
         const template = "systems/woinfoundry/templates/chat/combat-roll-dialog.html";
         const content = await foundry.applications.handlebars.renderTemplate(template, {
-            base: capped,
+            base: baseAttackDice,
             maxLuck: actor.system.luck.value,
             rollMode: game.settings.get("core", "rollMode")
         });
 
         const makeRoll = async (form, rollMode) => {
-            const base = this.#number(form, "base", capped);
+            const base = this.#number(form, "base", baseAttackDice);
             const add = this.#number(form, "bonus", 0);
             const flat = this.#number(form, "constant", 0);
             const luck = this.#number(form, "luck", 0);
@@ -229,6 +233,7 @@ export class DiceWOIN {
                 this.#buildTag("Weapon", item.name),
                 this.#buildTag("Skill", itemSkill),
                 this.#buildTag("Base", `${base}d6`),
+                weaponBonusAttack ? this.#buildTag("Weapon Bonus", weaponBonusAttack > 0 ? `+${weaponBonusAttack}` : `${weaponBonusAttack}`) : null,
                 this.#buildTag("Delta", modifierDelta > 0 ? `+${modifierDelta}` : `${modifierDelta}`),
                 add ? this.#buildTag("Bonus d6", add > 0 ? `+${add}` : `${add}`) : null,
                 flat ? this.#buildTag("Constant", flat > 0 ? `+${flat}` : `${flat}`) : null,

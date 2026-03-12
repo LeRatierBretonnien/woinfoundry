@@ -177,6 +177,7 @@ export class WOINActor extends Actor {
       data.carry.carried = 0;
       const combatItemUpdates = [];
       const availableAttributes = Object.keys(data.attributes ?? {});
+      const arraysEqual = (a = [], b = []) => a.length === b.length && a.every((value, index) => value === b[index]);
       actorData.items.forEach(item => {
         if (item.type === "item") {
           if (item.system.carried === true) {
@@ -195,6 +196,23 @@ export class WOINActor extends Actor {
           if (itemData.attribute !== normalizedAttribute) {
             itemData.attribute = normalizedAttribute;
             combatItemUpdates.push({ _id: item.id, "system.attribute": normalizedAttribute });
+          }
+          const currentDamageTypes = Array.isArray(itemData.weapon?.damagetype) ? itemData.weapon.damagetype : [];
+          const compactDamageTypes = currentDamageTypes
+            .map(value => `${value ?? ""}`.trim())
+            .filter(value => value !== "");
+          const parsedDamageTypesFromText = `${itemData.weapon?.damagetypetext ?? ""}`
+            .split(/[;,/|]+/)
+            .map(value => value.trim())
+            .filter(value => value !== "");
+          const resolvedDamageTypes = compactDamageTypes.length ? compactDamageTypes : parsedDamageTypesFromText;
+          const normalizedDamageTypes = resolvedDamageTypes.length ? [...resolvedDamageTypes, null] : [null];
+          const normalizedDamageTypeText = resolvedDamageTypes.join(", ");
+          if (!arraysEqual(currentDamageTypes, normalizedDamageTypes)) {
+            combatItemUpdates.push({ _id: item.id, "system.weapon.damagetype": normalizedDamageTypes });
+          }
+          if (`${itemData.weapon?.damagetypetext ?? ""}` !== normalizedDamageTypeText) {
+            combatItemUpdates.push({ _id: item.id, "system.weapon.damagetypetext": normalizedDamageTypeText });
           }
           if (itemData.skill) {
             const { pool: basePool, found, skill: matchedSkill } = this._resolveSkillPool(itemData.skill);
