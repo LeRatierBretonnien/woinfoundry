@@ -2,7 +2,7 @@
   "id": "woinfoundry",
   "title": "WOIN Foundry",
   "description": "An implementation of WOIN NEW for foundry, capable of running other WOIN systems (though without premade compendiums).",
-  "version": "13.0.5",
+  "version": "13.0.6",
   "compatibility": {
     "minimum": "13",
     "verified": "13"
@@ -35,8 +35,8 @@
   "primaryTokenAttribute": "health",
   "secondaryTokenAttribute": "power",
   "url": "https://github.com/LeRatierBretonnien/woinfoundry",
-  "manifest": "https://github.com/LeRatierBretonnien/woinfoundry/releases/download/13.0.5/system.json",
-  "download": "https://github.com/LeRatierBretonnien/woinfoundry/releases/download/13.0.5/system.zip",
+  "manifest": "https://github.com/LeRatierBretonnien/woinfoundry/releases/download/13.0.6/system.json",
+  "download": "https://github.com/LeRatierBretonnien/woinfoundry/releases/download/13.0.6/system.zip",
   "license": "LICENSE.txt",
   "packs": [
     {
