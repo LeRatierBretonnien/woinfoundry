@@ -28,6 +28,14 @@ const stringArrayField = (initial = []) =>
 const nullableStringArrayField = (initial = []) =>
   new fields.ArrayField(nullableStringField(""), { initial });
 
+const toFiniteNumber = (value, fallback = 0) => {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  const normalized = `${value ?? ""}`.replace(",", ".").trim();
+  if (normalized === "") return fallback;
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
 const modifierArrayField = (initial = [{ name: "base", bonus: 0, flat: 0 }]) =>
   new fields.ArrayField(modifierField(), { initial });
 
@@ -89,6 +97,15 @@ const itemArmorField = () =>
   });
 
 export class WOINCharacterData extends foundry.abstract.TypeDataModel {
+  static migrateData(source) {
+    const migrated = super.migrateData(source) ?? source ?? {};
+    const details = migrated.details ?? {};
+    details.carry_increment = toFiniteNumber(details.carry_increment, 0);
+    details.shadow = toFiniteNumber(details.shadow, 0);
+    migrated.details = details;
+    return migrated;
+  }
+
   static defineSchema() {
     return {
       biography: htmlField("Enter Text..."),
