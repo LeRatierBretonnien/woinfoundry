@@ -146,6 +146,38 @@ Hooks.once("init", async function () {
   });
 });
 
+Hooks.once("ready", async function () {
+  if (!game.user?.isGM) return;
+
+  const toFiniteNumber = (value) => {
+    const parsed = Number(`${value ?? ""}`.trim());
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
+  let fixedActors = 0;
+  for (const actor of game.actors ?? []) {
+    if (actor.type !== "character") continue;
+
+    const currentCarry = actor.system?.details?.carry_increment;
+    const currentShadow = actor.system?.details?.shadow;
+    const nextCarry = toFiniteNumber(currentCarry);
+    const nextShadow = toFiniteNumber(currentShadow);
+    const updates = {};
+
+    if (currentCarry !== nextCarry) updates["system.details.carry_increment"] = nextCarry;
+    if (currentShadow !== nextShadow) updates["system.details.shadow"] = nextShadow;
+
+    if (Object.keys(updates).length > 0) {
+      await actor.update(updates);
+      fixedActors += 1;
+    }
+  }
+
+  if (fixedActors > 0) {
+    ui.notifications.info(`WOIN: sanitized carry/shadow values on ${fixedActors} actor(s).`);
+  }
+});
+
 Hooks.on("preCreateItem", (item, data) => {
   const incomingName = `${data?.name ?? ""}`.trim();
   if (incomingName.length > 0) return;

@@ -39,6 +39,32 @@ export class SimpleActorSheet extends HandlebarsApplicationMixin(foundry.applica
   static async #onSubmitForm(event, form, formData) {
     if (!this.isEditable) return;
     const submitData = this._processFormData(event, form, formData);
+    const finiteNumberPaths = [
+      "system.details.carry_increment",
+      "system.details.shadow"
+    ];
+    const invalidFiniteFields = [];
+
+    for (const path of finiteNumberPaths) {
+      const hasDirectPath = Object.prototype.hasOwnProperty.call(submitData, path);
+      const rawValue = hasDirectPath ? submitData[path] : foundry.utils.getProperty(submitData, path);
+      if (rawValue === undefined) continue;
+
+      const numericValue = Number(`${rawValue}`.trim());
+      const safeValue = Number.isFinite(numericValue) ? numericValue : 0;
+      if (!Number.isFinite(numericValue) && `${rawValue}`.trim() !== "") {
+        const pathParts = path.split(".");
+        invalidFiniteFields.push(pathParts[pathParts.length - 1]);
+      }
+
+      if (hasDirectPath) submitData[path] = safeValue;
+      foundry.utils.setProperty(submitData, path, safeValue);
+    }
+
+    if (invalidFiniteFields.length > 0) {
+      ui.notifications.warn(`${invalidFiniteFields.join(", ")} must be finite numbers. Invalid values were reset to 0.`);
+    }
+
     return this._processSubmitData(event, form, submitData);
   }
 
@@ -261,9 +287,11 @@ export class SimpleActorSheet extends HandlebarsApplicationMixin(foundry.applica
       const shouldBeNumber = dtype === "number" || inputType === "number" || typeof currentValue === "number" || isNumericPath;
       const parsed = Number(rawValue);
       const value = shouldBeNumber ? (Number.isFinite(parsed) ? parsed : 0) : rawValue;
+      const isCarryOrShadow = path === "system.details.carry_increment" || path === "system.details.shadow";
 
-      if (path === "system.details.carry_increment" && shouldBeNumber && rawValue !== "" && !Number.isFinite(parsed)) {
-        ui.notifications.warn("Carry Increment must be a finite number. Value reset to 0.");
+      if (isCarryOrShadow && shouldBeNumber && rawValue !== "" && !Number.isFinite(parsed)) {
+        const label = path.endsWith("shadow") ? "Shadow" : "Carry Increment";
+        ui.notifications.warn(`${label} must be a finite number. Value reset to 0.`);
       }
 
       await this.actor.update({ [path]: value });
