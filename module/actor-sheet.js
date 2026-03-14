@@ -257,8 +257,14 @@ export class SimpleActorSheet extends HandlebarsApplicationMixin(foundry.applica
       const currentValue = foundry.utils.getProperty(this.actor, path);
       const dtype = `${field.dataset?.dtype ?? ""}`.toLowerCase();
       const inputType = `${field.type ?? ""}`.toLowerCase();
-      const shouldBeNumber = dtype === "number" || inputType === "number" || typeof currentValue === "number";
-      const value = shouldBeNumber ? (Number.isFinite(Number(rawValue)) ? Number(rawValue) : 0) : rawValue;
+      const isNumericPath = /^system\.(attributes\.[^.]+\.value|health\.(value|max|min)|luck\.(value|max|min)|power\.(value|max|min)|movement\.(speed|climb|swim|jumpH|jumpV|highG|lowG|zeroG)|defense\.(melee|ranged|mental|vital)|details\.(carry_increment|shadow)|credits|advancement\.(grade|dice_cap)|initiative\.mod)$/.test(path);
+      const shouldBeNumber = dtype === "number" || inputType === "number" || typeof currentValue === "number" || isNumericPath;
+      const parsed = Number(rawValue);
+      const value = shouldBeNumber ? (Number.isFinite(parsed) ? parsed : 0) : rawValue;
+
+      if (path === "system.details.carry_increment" && shouldBeNumber && rawValue !== "" && !Number.isFinite(parsed)) {
+        ui.notifications.warn("Carry Increment must be a finite number. Value reset to 0.");
+      }
 
       await this.actor.update({ [path]: value });
     });
