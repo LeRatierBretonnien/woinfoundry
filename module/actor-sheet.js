@@ -216,6 +216,21 @@ export class SimpleActorSheet extends HandlebarsApplicationMixin(foundry.applica
     // Everything below here is only needed if the sheet is editable
     if (!this.isEditable) return;
 
+    // Portrait image editing (AppV2 has no automatic data-edit handler)
+    html.find('img[data-edit]').click(ev => {
+      const img = ev.currentTarget;
+      const attr = img.dataset.edit;
+      const current = foundry.utils.getProperty(this.actor, attr);
+      const fp = new foundry.applications.apps.FilePicker.implementation({
+        type: "image",
+        current: current,
+        callback: path => this.actor.update({ [attr]: path }),
+        top: this.position.top + 40,
+        left: this.position.left + 10
+      });
+      fp.browse();
+    });
+
     // Update Inventory Item
     html.find('.item-edit').click(ev => {
       const li = $(ev.currentTarget);

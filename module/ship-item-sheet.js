@@ -71,6 +71,20 @@ export class SimpleShipItemSheet extends HandlebarsApplicationMixin(foundry.appl
   activateListeners(html) {
     if (!this.isEditable) return;
 
+    html.find('img[data-edit]').click(ev => {
+      const img = ev.currentTarget;
+      const attr = img.dataset.edit;
+      const current = foundry.utils.getProperty(this.document, attr);
+      const fp = new foundry.applications.apps.FilePicker.implementation({
+        type: "image",
+        current: current,
+        callback: path => this.document.update({ [attr]: path }),
+        top: this.position.top + 40,
+        left: this.position.left + 10
+      });
+      fp.browse();
+    });
+
     // ship_armor soak array management
     html.find(".ship-armor-soak-add").click(async () => {
       const soak = foundry.utils.duplicate(this.document.system.soak ?? []);

@@ -25,14 +25,18 @@ export class DiceWOIN {
 
     static async #sendRoll({ formula, data = {}, speaker, flavor, rollMode, actor = null, luckSpent = 0, detailTags = [], subtitle = null, icon = null }) {
         const modeClassMap = {
-            roll: "woin-chat-mode--public",
-            gmroll: "woin-chat-mode--private",
-            blindroll: "woin-chat-mode--blind"
+            public: "woin-chat-mode--public",
+            gm: "woin-chat-mode--private",
+            blind: "woin-chat-mode--blind",
+            self: "woin-chat-mode--private",
+            ic: "woin-chat-mode--public"
         };
         const modeLabelMap = {
-            roll: "Public",
-            gmroll: "Private",
-            blindroll: "Blind"
+            public: "Public",
+            gm: "Private",
+            blind: "Blind",
+            self: "Self",
+            ic: "In Character"
         };
         const actorName = this.#escapeHTML(actor?.name ?? speaker?.alias ?? "WOIN");
         const actorImage = icon ?? actor?.img ?? "icons/svg/d20-black.svg";
@@ -65,7 +69,7 @@ export class DiceWOIN {
         let roll;
         try {
             roll = new Roll(formula, data);
-            roll = await roll.toMessage({ speaker, flavor: flavorCard }, { rollMode });
+            roll = await roll.toMessage({ speaker, flavor: flavorCard }, { messageMode: rollMode });
         } catch (err) {
             console.error("WOIN | dice.js: Invalid roll formula:", formula, err);
             ui.notifications.error("WOIN: Invalid roll formula — check the console for details.");
@@ -112,7 +116,7 @@ export class DiceWOIN {
             base: dice,
             constant,
             maxLuck: actor.system.luck.value,
-            rollMode: game.settings.get("core", "rollMode")
+            rollMode: game.settings.get("core", "messageMode")
         });
 
         const makeGeneralRoll = async (form, rollMode) => {
@@ -136,9 +140,9 @@ export class DiceWOIN {
             title: "Roll",
             content,
             callbacks: {
-                public:  (event, button) => makeGeneralRoll(button.form, "roll"),
-                private: (event, button) => makeGeneralRoll(button.form, "gmroll"),
-                blind:   (event, button) => makeGeneralRoll(button.form, "blindroll")
+                public:  (event, button) => makeGeneralRoll(button.form, "public"),
+                private: (event, button) => makeGeneralRoll(button.form, "gm"),
+                blind:   (event, button) => makeGeneralRoll(button.form, "blind")
             }
         });
     }
@@ -194,7 +198,7 @@ export class DiceWOIN {
         const content = await foundry.applications.handlebars.renderTemplate(template, {
             base: baseAttackDice,
             maxLuck: actor.system.luck.value,
-            rollMode: game.settings.get("core", "rollMode")
+            rollMode: game.settings.get("core", "messageMode")
         });
 
         const makeRoll = async (form, rollMode) => {
@@ -275,9 +279,9 @@ export class DiceWOIN {
             position: { width: 980 },
             content,
             callbacks: {
-                public: (event, button) => makeRoll(button.form, "roll"),
-                private: (event, button) => makeRoll(button.form, "gmroll"),
-                blind: (event, button) => makeRoll(button.form, "blindroll")
+                public: (event, button) => makeRoll(button.form, "public"),
+                private: (event, button) => makeRoll(button.form, "gm"),
+                blind: (event, button) => makeRoll(button.form, "blind")
             }
         });
     }
@@ -295,8 +299,8 @@ export class DiceWOIN {
             formula: parts.join(" + "),
             maxLuck: sender.system.luck.value,
             data: data ?? {},
-            rollMode: rollMode || game.settings.get("core", "rollMode"),
-            rollModes: CONFIG.rollModes,
+            rollMode: rollMode || game.settings.get("core", "messageMode"),
+            rollModes: CONFIG.ChatMessage.modes,
             config: CONFIG.woinfoundry ?? {}
         });
 
@@ -324,9 +328,9 @@ export class DiceWOIN {
             title: title || "Roll",
             content,
             callbacks: {
-                public: (event, button) => makeRoll(button.form, "roll"),
-                private: (event, button) => makeRoll(button.form, "gmroll"),
-                blind: (event, button) => makeRoll(button.form, "blindroll")
+                public: (event, button) => makeRoll(button.form, "public"),
+                private: (event, button) => makeRoll(button.form, "gm"),
+                blind: (event, button) => makeRoll(button.form, "blind")
             }
         });
     }
