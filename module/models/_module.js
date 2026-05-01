@@ -265,7 +265,8 @@ export class WOINSkillData extends foundry.abstract.TypeDataModel {
       attribute: stringField("strength"),
       score: numberField(0),
       pool: numberField(0),
-      gradepool: numberField(0)
+      gradepool: numberField(0),
+      description: htmlField("")
     };
   }
 }
@@ -413,7 +414,8 @@ export class WOINShipQuirkData extends foundry.abstract.TypeDataModel {
 export class WOINLanguageData extends foundry.abstract.TypeDataModel {
   static defineSchema() {
     return {
-      name: stringField("standard")
+      name: stringField("standard"),
+      description: htmlField("")
     };
   }
 }

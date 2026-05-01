@@ -37,12 +37,18 @@ export class SimpleShipItemSheet extends HandlebarsApplicationMixin(foundry.appl
   async _prepareContext() {
     const context = await super._prepareContext();
     const item = this.document;
+    const enrichedDescription = await foundry.applications.ux.TextEditor.implementation.enrichHTML(
+      item.system.description, { relativeTo: item }
+    );
     return {
       ...context,
       item,
       system: item.system,
+      fields: item.schema.fields,
+      systemFields: item.system.schema.fields,
       owner: this.isOwner,
-      editable: this.isEditable
+      editable: this.isEditable,
+      enrichedDescription,
     };
   }
 

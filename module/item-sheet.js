@@ -56,13 +56,19 @@ export class SimpleItemSheet extends HandlebarsApplicationMixin(foundry.applicat
     const item = this.document;
     const actorAttributes = Object.keys(item.parent?.system?.attributes ?? {});
     const attributeOptions = actorAttributes.length ? actorAttributes : DEFAULT_ATTRIBUTE_OPTIONS;
+    const enrichedDescription = await foundry.applications.ux.TextEditor.implementation.enrichHTML(
+      item.system.description, { relativeTo: item }
+    );
     return {
       ...context,
       item,
       system: item.system,
+      fields: item.schema.fields,
+      systemFields: item.system.schema.fields,
       attributeOptions,
       owner: this.isOwner,
-      editable: this.isEditable
+      editable: this.isEditable,
+      enrichedDescription,
     };
   }
 

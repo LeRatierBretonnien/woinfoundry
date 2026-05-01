@@ -8,25 +8,25 @@
       "biography": "Enter Text...",
       "initiative": {
         "value": 0,
-        "mod":0,
+        "mod": 0,
         "skill": ""
       },
-      "details":{
-        "is":"a bountyhunter/mechanic/politician",
-        "with":"grudge/personal life/fondness of blades",
-        "species":"human",
-        "homeworld":"mars",
-        "origin":"Moisture Farmer",
-        "gender":"none",
-        "age":"young",
-        "height":"120cm",
-        "weight":"60kg",
-        "languages":"standard",
-        "size":"medium",
-        "traits":"none",
-        "deity":"none",
-        "carry_increment":0,
-        "shadow":0
+      "details": {
+        "is": "a bountyhunter/mechanic/politician",
+        "with": "grudge/personal life/fondness of blades",
+        "species": "human",
+        "homeworld": "mars",
+        "origin": "Moisture Farmer",
+        "gender": "none",
+        "age": "young",
+        "height": "120cm",
+        "weight": "60kg",
+        "languages": "standard",
+        "size": "medium",
+        "traits": "none",
+        "deity": "none",
+        "carry_increment": 0,
+        "shadow": 0
       },
       "carry": {
         "carried": 0
@@ -34,8 +34,18 @@
       "credits": 0,
       "net_worth": 0,
       "advancement": {
-        "xp_gain": [{"name":"default","value":0}],
-        "xp_spent": [{"name":"default","value":0}],
+        "xp_gain": [
+          {
+            "name": "default",
+            "value": 0
+          }
+        ],
+        "xp_spent": [
+          {
+            "name": "default",
+            "value": 0
+          }
+        ],
         "xp_total": 0,
         "grade": 0,
         "dice_cap": 0
@@ -56,30 +66,66 @@
         "max": 0
       },
       "soak": {
-        "natural":0,
-        "armor":0,
-        "natural_modifiers":[{"name":"base","bonus":0,"flat":0}],
-        "armor_modifiers":[{"name":"base","bonus":0,"flat":0}]
+        "natural": 0,
+        "armor": 0,
+        "natural_modifiers": [
+          {
+            "name": "base",
+            "bonus": 0,
+            "flat": 0
+          }
+        ],
+        "armor_modifiers": [
+          {
+            "name": "base",
+            "bonus": 0,
+            "flat": 0
+          }
+        ]
       },
-      "defense":{
-        "melee":0,
-        "ranged":0,
-        "mental":0,
-        "vital":0,
-        "melee_modifiers":[{"name":"base","bonus":0,"flat":0}],
-        "ranged_modifiers":[{"name":"base","bonus":0,"flat":0}],
-        "mental_modifiers":[{"name":"base","bonus":0,"flat":0}],
-        "vital_modifiers":[{"name":"base","bonus":0,"flat":0}]
+      "defense": {
+        "melee": 0,
+        "ranged": 0,
+        "mental": 0,
+        "vital": 0,
+        "melee_modifiers": [
+          {
+            "name": "base",
+            "bonus": 0,
+            "flat": 0
+          }
+        ],
+        "ranged_modifiers": [
+          {
+            "name": "base",
+            "bonus": 0,
+            "flat": 0
+          }
+        ],
+        "mental_modifiers": [
+          {
+            "name": "base",
+            "bonus": 0,
+            "flat": 0
+          }
+        ],
+        "vital_modifiers": [
+          {
+            "name": "base",
+            "bonus": 0,
+            "flat": 0
+          }
+        ]
       },
       "movement": {
-        "speed":0,
-        "climb":0,
-        "swim":0,
-        "jumpH":0,
-        "jumpV":0,
-        "highG":0,
-        "lowG":0,
-        "zeroG":0
+        "speed": 0,
+        "climb": 0,
+        "swim": 0,
+        "jumpH": 0,
+        "jumpV": 0,
+        "highG": 0,
+        "lowG": 0,
+        "zeroG": 0
       },
       "attributes": {
         "strength": {
@@ -171,23 +217,23 @@
     "spacecraft": {
       "history": "Enter Text...",
       "details": {
-        "name":"Name",
-        "date":"Entering Service XXXX",
-        "weight":0,
-        "hull":"Class I",
-        "length":0,
-        "width":0,
-        "height":0,
-        "traits":"",
-        "market_value":0
+        "name": "Name",
+        "date": "Entering Service XXXX",
+        "weight": 0,
+        "hull": "Class I",
+        "length": 0,
+        "width": 0,
+        "height": 0,
+        "traits": "",
+        "market_value": 0
       },
       "crew": {
-        "crew":"",
-        "cost":0,
-        "troops":"0",
-        "passengers":"0",
-        "cabins":"(0 standard, 0 luxury)",
-        "luxury":"100% Adequate"
+        "crew": "",
+        "cost": 0,
+        "troops": "0",
+        "passengers": "0",
+        "cabins": "(0 standard, 0 luxury)",
+        "luxury": "100% Adequate"
       },
       "engine": {
         "fuel_capacity": 0,
@@ -222,23 +268,28 @@
       "language"
     ],
     "item": {
-      "inventorysort":0,
+      "inventorysort": 0,
       "description": "Enter Text...",
       "quantity": 1,
       "weight": 0,
       "cost": 0,
       "size": "m",
-      "availability":"00",
-      "types":["none","weapon","container","armor"],
-      "type":"none",
+      "availability": "00",
+      "types": [
+        "none",
+        "weapon",
+        "container",
+        "armor"
+      ],
+      "type": "none",
       "skill": "skill",
       "attribute": "strength",
       "equipped": false,
       "equipped_modifiers": "",
       "carried": true,
       "quality": "standard",
-      "contained_in":"",
-      "error":"",
+      "contained_in": "",
+      "error": "",
       "container": {
         "holds": 0,
         "adds": 0,
@@ -252,7 +303,9 @@
         "damage_bonus_origin": "skill",
         "tradeoff": 0,
         "damagetypetext": "",
-        "damagetype": ["slashing"],
+        "damagetype": [
+          "slashing"
+        ],
         "special": "",
         "attack": 0,
         "bonus_attack": 0
@@ -261,80 +314,89 @@
         "type": "light",
         "special": "",
         "soak": 0,
-        "ineffective": ["none"]
+        "ineffective": [
+          "none"
+        ]
       }
     },
     "skill": {
       "attribute": "strength",
       "score": 0,
       "pool": 0,
-      "gradepool": 0
+      "gradepool": 0,
+      "description": ""
     },
     "exploit": {
-      "name":"name",
-      "description":"description",
-      "modifier":""
+      "name": "name",
+      "description": "description",
+      "modifier": ""
     },
     "ship_computer": {
-      "quantity":0,
-      "cycles":0,
-      "max_FTL":0,
-      "check":"+0d6"
+      "quantity": 0,
+      "cycles": 0,
+      "max_FTL": 0,
+      "check": "+0d6"
     },
     "ship_sensor": {
-      "quantity":1,
-      "range":0,
-      "check":"+0d6"
+      "quantity": 1,
+      "range": 0,
+      "check": "+0d6"
     },
     "ship_ftl": {
-      "quantity":1,
-      "power":0,
-      "FTL":0,
-      "fuel_efficiency":0
+      "quantity": 1,
+      "power": 0,
+      "FTL": 0,
+      "fuel_efficiency": 0
     },
     "ship_subliminal": {
-      "quantity":1,
-      "power":0,
-      "speed":0,
-      "fuel_efficiency":0
+      "quantity": 1,
+      "power": 0,
+      "speed": 0,
+      "fuel_efficiency": 0
     },
     "ship_weapon": {
-      "facing":"f",
-      "turret":false,
-      "quantity":1,
-      "range":0,
-      "damage":"0d6",
-      "damage_type":[],
-      "attack":"+0d6"
+      "facing": "f",
+      "turret": false,
+      "quantity": 1,
+      "range": 0,
+      "damage": "0d6",
+      "damage_type": [],
+      "attack": "+0d6"
     },
     "ship_facilities": {
-      "size":0
+      "size": 0
     },
     "ship_systems": {
-      "quantity":1,
-      "description":""
+      "quantity": 1,
+      "description": ""
     },
     "ship_hangar": {
-      "quantity":1,
-      "ship_type":""
+      "quantity": 1,
+      "ship_type": ""
     },
     "ship_shield": {
-      "quantity":1,
-      "power":0,
-      "soak":0
+      "quantity": 1,
+      "power": 0,
+      "soak": 0
     },
     "ship_armor": {
-      "quantity":1,
-      "type":"",
-      "soak":[[0,"ballistic"]]
+      "quantity": 1,
+      "type": "",
+      "soak": [
+        [
+          0,
+          "ballistic"
+        ]
+      ]
     },
     "ship_quirk": {
-      "quantity":1,
+      "quantity": 1,
       "hidden": true,
-      "description":""
+      "description": ""
     },
     "language": {
-      "name":"standard"
+      "name": "standard",
+      "description": ""
     }
   }
 }

@@ -287,7 +287,12 @@
         <br>
 
         <h1>Description:</h1>
-        {{editor system.biography target="system.biography" button=true owner=owner editable=editable}}
+        {{#ifeq actor.actor.type "character"}}
+        {{formInput systemFields.biography enriched=enrichedBiography value=system.biography name="system.biography" toggled=true}}
+        {{/ifeq}}
+        {{#ifeq actor.actor.type "spacecraft"}}
+        {{formInput systemFields.history enriched=enrichedHistory value=system.history name="system.history" toggled=true}}
+        {{/ifeq}}
       </div>
 
       {{!-- Advancement Tab --}}

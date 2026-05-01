@@ -77,6 +77,12 @@ export class SimpleActorSheet extends HandlebarsApplicationMixin(foundry.applica
       items: actorDocument.items,
       effects: actorDocument.effects
     };
+    const enrichedBiography = await foundry.applications.ux.TextEditor.implementation.enrichHTML(
+      actorDocument.system.biography ?? "", { relativeTo: actorDocument }
+    );
+    const enrichedHistory = await foundry.applications.ux.TextEditor.implementation.enrichHTML(
+      actorDocument.system.history ?? "", { relativeTo: actorDocument }
+    );
     let sheetData = {
       ...context,
       owner: this.isOwner,
@@ -84,9 +90,12 @@ export class SimpleActorSheet extends HandlebarsApplicationMixin(foundry.applica
       actor: baseData,
       items: actorDocument.items,
       system: actorDocument.system,
+      fields: actorDocument.schema.fields,
+      systemFields: actorDocument.system.schema.fields,
+      enrichedBiography,
+      enrichedHistory,
     };
     await this.prepareItems(sheetData.items);
-    console.log("WOIN | actor-sheet.js _prepareContext sheetData ", sheetData);
     return sheetData;
   }
   // ================================================================================
@@ -207,6 +216,25 @@ export class SimpleActorSheet extends HandlebarsApplicationMixin(foundry.applica
     setActiveTab(initialTab);
   }
 
+  async _persistRichTextField(field) {
+    if (!field?.closest(".character-sheet")) return;
+    const path = field.getAttribute("name");
+    if (!path?.startsWith("system.")) return;
+
+    const value = `${field.value ?? ""}`;
+    const currentValue = `${foundry.utils.getProperty(this.actor, path) ?? ""}`;
+    if (value === currentValue) return;
+
+    if (field.dataset.woinPendingValue === value) return;
+    field.dataset.woinPendingValue = value;
+
+    try {
+      await this.actor.update({ [path]: value });
+    } finally {
+      if (field.dataset.woinPendingValue === value) delete field.dataset.woinPendingValue;
+    }
+  }
+
 
   // ---------------------------------------------------------------------------------
   // The Code Below Handles listener creation for the character sheet: (Its messy)
@@ -310,6 +338,15 @@ export class SimpleActorSheet extends HandlebarsApplicationMixin(foundry.applica
       }
 
       await this.actor.update({ [path]: value });
+    });
+
+    this.element.querySelectorAll("prose-mirror[name]").forEach(field => {
+      field.addEventListener("save", async () => {
+        await this._persistRichTextField(field);
+      });
+      field.addEventListener("change", async () => {
+        await this._persistRichTextField(field);
+      });
     });
 
     // Handling Updates to Skills:
