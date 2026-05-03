@@ -1,11 +1,17 @@
 const BASE_PATH = "systems/woinfoundry/Icons/conditions/pngs";
 
-const statusEffect = (icon, id, label) => ({
-    icon: `${BASE_PATH}/${icon}`,
-    id,
-    label,
-    flags: { woin: { value: 0 } }
-});
+const statusEffect = (iconFile, id, name) => {
+    const img = `${BASE_PATH}/${iconFile}`;
+    return {
+        id,
+        name,
+        img,
+        // Keep legacy aliases for older code paths that still reference v13-era keys.
+        label: name,
+        icon: img,
+        flags: { woin: { value: 0 } }
+    };
+};
 
 CONFIG.statusEffects = [
     statusEffect("terror.png",        "Afraid",     "Afraid"),

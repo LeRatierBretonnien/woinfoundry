@@ -203,20 +203,20 @@
       <div class="tab biography" data-group="primary" data-tab="description">
 
         <section class="profile-fields">
-          <div style="float:left" class="profile-img-surrounding">
+          <div class="profile-img-surrounding">
             <img class="profile-img" src="{{actor.actor.img}}" data-edit="img" title="{{actor.actor.name}}" height="100"
               width="100" />
           </div>
-          <div>
+          <div class="profile-summary">
             <div class="details">
               <span>Name:</span>
-              <input style="width:300px" type="text" value="{{actor.actor.name}}" name="name">
+              <input type="text" value="{{actor.actor.name}}" name="name">
             </div>
             <div class="details"> <span>Is a:</span>
-              <input style="width:300px" type="text" value="{{system.details.is}}" name="system.details.is">
+              <input type="text" value="{{system.details.is}}" name="system.details.is">
             </div>
             <div class="details"> <span>With/Who:</span>
-              <input style="width:300px" type="text" value="{{system.details.with}}" name="system.details.with">
+              <input type="text" value="{{system.details.with}}" name="system.details.with">
             </div>
           </div>
         </section>

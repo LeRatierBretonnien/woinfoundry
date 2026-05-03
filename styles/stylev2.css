@@ -46,7 +46,7 @@
 .charname input {
     color: white !important;
 }
-.editor {
+.woin .editor {
     color: white !important;
     border: 1px solid var(--cyan);
     background-color: #1a1f22;
@@ -56,7 +56,7 @@
 .tox-edit-area__iframe {
     background: white !important;
 }
-.tox.tox-tinymce {
+.woin .tox.tox-tinymce {
     min-height: 300px;
 }
 
@@ -688,17 +688,25 @@ input[type=number] {
 
 .woin .biography .character-details {
     display: grid;
-    grid: "portrait name" "portrait isa";
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 6px 12px;
+    align-items: start;
 }
 
 .woin .biography .profile-fields {
     margin-top: 10px;
     overflow: hidden;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-start;
 }
 
 .woin .biography .profile-img-surrounding {
+    flex: 0 0 200px;
     width: 200px;
     height: 200px;
+    max-width: 100%;
     background: #00ffde02;
     border: 1px solid var(--cyan);
     /* box-shadow: 0 0 10px inset var(--cyan); */
@@ -711,19 +719,30 @@ input[type=number] {
     object-fit: contain;
 }
 
+.woin .biography .profile-summary {
+    flex: 1 1 320px;
+    min-width: 0;
+}
+
 .woin .biography .details {
-    display: inline-block;
-    margin: 3px 5px;
     display: flex;
-    min-width: 150px;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    margin: 3px 5px;
 }
 
 .woin .biography .details span {
     flex: 0 0 110px;
+    min-width: 110px;
 }
 
 .woin .biography .details input {
-    width: 200px;
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
     background: var(--background-cyan);
     border: 1px solid var(--cyan);
     border-radius: 0px;
